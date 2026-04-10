@@ -1,134 +1,161 @@
 #!/bin/bash
-#SBATCH --job-name=rl_training       # Job name
+# SLURM Job Script for Continual RL Benchmark
+# Submit with: sbatch slurm.sh
+# Or array job: sbatch --array=0-4 slurm.sh
+
+#SBATCH --job-name=continual_rl      # Job name
 #SBATCH --partition=gpu              # Partition/Queue name
-#SBATCH --mail-type=END,FAIL        # Mail events
+#SBATCH --mail-type=END,FAIL         # Mail events
 #SBATCH --mail-user=egyaase@maine.edu # Where to send mail
 #SBATCH --ntasks=1                   # Run on single node
-#SBATCH --cpus-per-task=8           # Run with 8 threads
-#SBATCH --mem=150gb                 # Job memory request
-#SBATCH --time=96:00:00             # Time limit hrs:min:sec
-#SBATCH --output=rl_error_%j.log    # Standard output and error log
-#SBATCH --gres=gpu:l40:1            # Request 1 L40 GPU
+#SBATCH --cpus-per-task=8            # Run with 8 threads
+#SBATCH --mem=150gb                  # Job memory request
+#SBATCH --time=96:00:00              # Time limit hrs:min:sec
+#SBATCH --gres=gpu:l40:1             # Request 1 L40 GPU
+#SBATCH --output=logs/rl_%j_%A_%a.log # Standard output and error log
 
-# Change directory
-cd ~/carla-rl
-# Load required module
-module load apptainer
-#generate random port
-get_random_port() {
-    local port
-    while true; do
-        # Generate random port number between 2000 and 65000
-        port=$(shuf -i 2000-65000 -n 1)
-        
-        # Check if port is in use
-        if ! netstat -tuln | grep ":$port " > /dev/null; then
-            echo "$port"
-            return 0
-        fi
-    done
-}
+# Set headless rendering for HPC
+export MUJOCO_GL=egl
+export PYOPENGL_PLATFORM=egl
 
+# Change to project directory
+cd /media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark
 
 # Create logs directory
-mkdir -p "$HOME/carla_logs"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p logs
 
-# Function to start training for a town
-train_town() {
-    local town=$1
-    local port=$(get_random_port)
-    local log_dir="$HOME/carla_logs/${TIMESTAMP}_${town}"
-    mkdir -p "$log_dir"
-    
-    echo "Starting CARLA server for ${town} on port ${port}"
-    
-    # Start CARLA server with error logging
-    nohup singularity run --nv -e "$HOME/containers/carla-0.9.15.sif" \
-    /home/carla/CarlaUE4.sh \
-    -RenderOffScreen \
-    -nosound \
-    -benchmark \
-    -fps=60 \
-    --carla-rpc-port="${port}" \
-    -prefernvidia > "$log_dir/carla_server.log" 2>&1 &
-    
-    local carla_pid=$!
-    
-    # Check if CARLA server started
-    if ! ps -p $carla_pid > /dev/null; then
-        echo "ERROR: Failed to start CARLA server for ${town}. Check logs at $log_dir/carla_server.log" >&2
-        return 1
-    fi
-    
-    echo "CARLA server started for ${town} with PID ${carla_pid}"
-    
-    # Wait for CARLA initialization
-    sleep 30
-    
-    # Start training with error logging
-    nohup singularity run --nv "$HOME/containers/acg.simg" \
-    python "$HOME/carla-rl/src/ppo_lane_following.py" \
-    "${town}" \
-    "${port}" > "$log_dir/training.log" 2>&1 &
-    
-    local training_pid=$!
-    
-    # Store PIDs for cleanup
-    echo "${carla_pid}" >> /tmp/carla_pids_$$
-    echo "${training_pid}" >> /tmp/training_pids_$$
-    
-    echo "Training started for ${town} with PID ${training_pid}"
-}
+# ============================================
+# Anaconda Environment Setup
+# ============================================
+ENV_NAME="continual-learning"
 
-# Create temporary files for PIDs
-touch /tmp/carla_pids_$$
-touch /tmp/training_pids_$$
+echo "============================================"
+echo "Setting up Anaconda environment"
+echo "============================================"
 
-# Error handling for the whole script
-set -e
+# Load anaconda module
+module load anaconda3
 
-echo "Starting training processes at ${TIMESTAMP}"
+# Initialize conda for this shell
+source $(conda info --base)/etc/profile.d/conda.sh
 
-# Start training for each town in parallel
-for town in "Town01" "Town02" "Town03"; do
-    port=$((2000 + ${#town}))
-    train_town "$town" "$port" || {
-        echo "ERROR: Failed to start training for ${town}" >&2
-        exit 1
-    }
-done
+# Check if environment exists, create if not
+if ! conda env list | grep -q "^${ENV_NAME} "; then
+    echo "Conda environment '${ENV_NAME}' not found. Creating..."
 
-# Cleanup function
-cleanup() {
-    echo "Cleaning up processes..."
-    
-    # Kill CARLA servers
-    if [ -f /tmp/carla_pids_$$ ]; then
-        while read pid; do
-            echo "Killing CARLA server with PID ${pid}"
-            kill $pid 2>/dev/null || echo "Failed to kill CARLA server PID ${pid}"
-        done < /tmp/carla_pids_$$
-        rm /tmp/carla_pids_$$
-    fi
-    
-    # Kill training processes
-    if [ -f /tmp/training_pids_$$ ]; then
-        while read pid; do
-            echo "Killing training process with PID ${pid}"
-            kill $pid 2>/dev/null || echo "Failed to kill training PID ${pid}"
-        done < /tmp/training_pids_$$
-        rm /tmp/training_pids_$$
-    fi
-    
-    echo "Cleanup completed"
-}
+    # Create conda environment with Python 3.10
+    conda create -n ${ENV_NAME} python=3.10 -y
 
-# Set up trap for cleanup
-trap cleanup EXIT INT TERM
+    # Activate environment
+    conda activate ${ENV_NAME}
 
-# Wait for all processes to finish
-wait
+    # Install PyTorch with CUDA support
+    echo "Installing PyTorch with CUDA..."
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-echo "All training processes completed at $(date)"
-exit 0
+    # Install core dependencies
+    echo "Installing core dependencies..."
+    pip install gymnasium>=0.29.0
+    pip install numpy>=1.24.0
+    pip install tensorboard>=2.14.0
+    pip install tqdm>=4.65.0
+    pip install hydra-core>=1.3.0
+    pip install omegaconf>=2.3.0
+    pip install pandas>=2.0.0
+    pip install matplotlib>=3.7.0
+    pip install seaborn>=0.12.0
+    pip install pytest>=7.0.0
+
+    # Install Mujoco
+    echo "Installing Mujoco..."
+    pip install mujoco>=3.0.0
+    pip install mujoco-py>=2.1.0
+
+    # Install MetaWorld for environments
+    echo "Installing MetaWorld environments..."
+    pip install git+https://github.com/Farama-Foundation/MetaWorld.git
+
+    echo "Conda environment setup complete!"
+else
+    echo "Conda environment '${ENV_NAME}' found. Activating..."
+    conda activate ${ENV_NAME}
+fi
+
+# Verify environment
+echo ""
+echo "Environment verification:"
+echo "  Python version: $(python --version)"
+echo "  PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
+echo "  CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
+echo "  CUDA device: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
+echo "============================================"
+
+# ============================================
+# Run Continual RL Benchmark
+# ============================================
+
+# Get seed from SLURM array task ID or use default
+SEED=${SLURM_ARRAY_TASK_ID:-0}
+
+# Method to run (can be passed as argument)
+METHOD=${1:-all}
+
+# HPC Configuration: 5M steps per task, 1M replay buffer
+STEPS_PER_TASK=5000000       # 5M steps per task for thorough training
+TOTAL_STEPS=50000000         # 10 tasks * 5M = 50M total steps
+
+echo ""
+echo "============================================"
+echo "Starting Continual RL Benchmark (HPC)"
+echo "============================================"
+echo "Method: ${METHOD}"
+echo "Seed: ${SEED}"
+echo "Steps per task: ${STEPS_PER_TASK} (5M)"
+echo "Total steps: ${TOTAL_STEPS} (50M)"
+echo "Replay buffer: 1,000,000 transitions"
+echo "MUJOCO_GL: ${MUJOCO_GL}"
+echo "Timestamp: $(date)"
+echo "============================================"
+echo ""
+
+# Run the HPC benchmark
+python experiments/hpc_run_all.py \
+    --method "${METHOD}" \
+    --env continual_world \
+    --seed ${SEED} \
+    --steps-per-task ${STEPS_PER_TASK} \
+    --eval-interval 25000 \
+    --eval-episodes 10 \
+    --checkpoint-dir checkpoints \
+    --output-dir results \
+    --no-render
+
+echo ""
+echo "============================================"
+echo "Benchmark completed at $(date)"
+echo "============================================"
+
+# ============================================
+# PIP Install Commands Reference
+# ============================================
+# If you need to manually install dependencies, run:
+#
+#   module load anaconda3
+#   source $(conda info --base)/etc/profile.d/conda.sh
+#   conda activate continual-learning
+#
+#   # PyTorch with CUDA
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+#
+#   # Core dependencies
+#   pip install gymnasium>=0.29.0 numpy>=1.24.0 tensorboard>=2.14.0 tqdm>=4.65.0
+#   pip install hydra-core>=1.3.0 omegaconf>=2.3.0 pandas>=2.0.0
+#   pip install matplotlib>=3.7.0 seaborn>=0.12.0 pytest>=7.0.0
+#
+#   # Mujoco
+#   pip install mujoco>=3.0.0 mujoco-py>=2.1.0
+#
+#   # MetaWorld environments
+#   pip install git+https://github.com/Farama-Foundation/MetaWorld.git
+#
+# ============================================
