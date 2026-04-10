@@ -1,0 +1,19 @@
+defaults:
+  - base
+
+name: "dual_actor"
+# Dual Actor Networks (ICLR 2025)
+# One actor resets for current task, one distills all knowledge
+agent:
+  hidden_dim: 256
+  learning_rate: 3e-4
+  buffer_size: 1000000
+  batch_size: 256
+  gamma: 0.99
+  tau: 0.005
+  alpha: 0.2
+  target_update_freq: 1
+  # Dual actor specific
+  reset_interval: 50000  # Reset current actor every N steps
+  distill_alpha: 0.5  # Distillation loss weight
+  bc_buffer_size: 100000  # Behavior cloning buffer

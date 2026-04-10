@@ -1,0 +1,21 @@
+defaults:
+  - base
+
+name: "world_model"
+# Online World Model + MPC (ICML 2025)
+# Learns dynamics model and plans via MPC
+agent:
+  hidden_dim: 256
+  learning_rate: 3e-4
+  buffer_size: 1000000
+  batch_size: 256
+  gamma: 0.99
+  tau: 0.005
+  alpha: 0.2
+  target_update_freq: 1
+  # World model specific
+  model_hidden_dim: 512
+  model_lr: 0.0003
+  mpc_horizon: 10
+  mpc_samples: 100
+  model_update_freq: 10

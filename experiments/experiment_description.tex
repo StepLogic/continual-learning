@@ -1,0 +1,79 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\title{Continual Reinforcement Learning Benchmark Experiments}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Evaluation Environment}
+
+We evaluate continual RL agents on the \textbf{MetaWorld ML10 benchmark}, a suite of 10 robotic manipulation tasks using a Sawyer robot arm with 4-dimensional continuous action space. Agents face \textbf{catastrophic forgetting} as tasks switch every 400,000 environment steps.
+
+\begin{table}[h]
+\centering
+\caption{MetaWorld ML10 Tasks}
+\begin{tabular}{ll}
+\toprule
+Task & Description \\
+\midrule
+reach-v3 & Reach to target position \\
+push-v3 & Push object to goal \\
+pick-place-v3 & Pick and place object \\
+door-open-v3 & Open door by handle \\
+drawer-close-v3 & Close drawer \\
+button-press-topdown-v3 & Press button from above \\
+peg-insert-side-v3 & Insert peg in side slot \\
+window-open-v3 & Open sliding window \\
+sweep-v3 & Sweep object off table \\
+basketball-v3 & Put ball in hoop \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Training Protocol}
+
+\begin{itemize}
+    \item \textbf{Total steps}: 4,000,000 per seed
+    \item \textbf{Steps per task}: 400,000 (cycles through all 10 tasks 4 times)
+    \item \textbf{Action space}: $[-1, 1]^4$ continuous end-effector control
+    \item \textbf{Algorithm}: Soft Actor-Critic (SAC) with twin Q-functions
+    \item \textbf{Replay buffer}: 1,000,000 transitions
+    \item \textbf{Batch size}: 256
+    \item \textbf{Discount} ($\gamma$): 0.99
+    \item \textbf{Target smoothing} ($\tau$): 0.005
+\end{itemize}
+
+\section{Baselines}
+
+\begin{table}[h]
+\centering
+\caption{Continual RL Baselines}
+\begin{tabular}{ll}
+\toprule
+Method & Key Idea \\
+\midrule
+SAC (Base) & Standard Soft Actor-Critic \\
+Fast TRAC & Adaptive learning rates + gradient clipping \\
+Parseval & Orthogonality regularization on weights \\
+Dual-Learner & Fast/slow learning systems \\
+World Model & MPC planning with learned dynamics \\
+Dual-Actor & Current + distilled policy architecture \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Metrics}
+
+Performance is evaluated using standard continual RL metrics:
+\begin{itemize}
+    \item \textbf{Average Return}: Mean episode reward across all tasks
+    \item \textbf{Forgetting Measure}: Performance drop on previous tasks after learning new ones
+    \item \textbf{Forward Transfer}: Improvement on new tasks from prior learning
+\end{itemize}
+
+\end{document}
