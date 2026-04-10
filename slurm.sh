@@ -37,7 +37,7 @@ echo "============================================"
 module load anaconda3
 
 # Initialize conda for this shell
-source $(conda info --base)/etc/profile.d/conda.sh
+$INIT_CONDA
 
 # Check if environment exists, create if not
 if ! conda env list | grep -q "^${ENV_NAME} "; then
