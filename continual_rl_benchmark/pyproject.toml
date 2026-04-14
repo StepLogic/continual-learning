@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "continual-rl-benchmark"
+version = "0.1.0"
+description = "Benchmark suite for SOTA Continual Reinforcement Learning methods"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Continual RL Research"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "torch>=2.0.0",
+    "gymnasium>=0.29.0",
+    "numpy>=1.24.0",
+    "tensorboard>=2.14.0",
+    "tqdm>=4.65.0",
+    "hydra-core>=1.3.0",
+    "omegaconf>=2.3.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "pytest>=7.0.0",
+]
+
+[project.optional-dependencies]
+envs = [
+    "metaworld @ git+https://github.com/Farama-Foundation/MetaWorld.git",
+    "procgen>=0.3.0",
+    "minatar>=1.0.0",
+]
+dev = [
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/continual-rl-benchmark"
+
+[project.scripts]
+run-experiment = "experiments.run_all:main"
+plot-results = "scripts.plot_results:main"
+generate-report = "scripts.generate_report:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

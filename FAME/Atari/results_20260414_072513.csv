@@ -1,0 +1,84 @@
+model_path,model_name,algorithm,environment,mode,seed,avg_return,success,error
+agents/ALE-Freeway-v5_0__FAME__run_ppo_FAME__1,ALE-Freeway-v5_0__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,0,1,11.9,True,
+agents/ALE-Freeway-v5_0__cnn-simple__run_ppo__1,ALE-Freeway-v5_0__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,0,1,12.5,True,
+agents/ALE-Freeway-v5_0__dino-simple__run_ppo__1,ALE-Freeway-v5_0__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,0,1,0.1,True,
+agents/ALE-Freeway-v5_0__packnet__run_ppo__1,ALE-Freeway-v5_0__packnet__run_ppo__1,packnet,ALE/Freeway-v5,0,1,10.0,True,
+agents/ALE-Freeway-v5_0__prog-net__run_ppo__1,ALE-Freeway-v5_0__prog-net__run_ppo__1,prog-net,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 124, in <module>
+    agent = ProgressiveNetAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/progressive_net.py"", line 61, in load
+    model.critic = torch.load(f""{dirname}/critic.pt"", map_location=map_location, weights_only=False)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1530, in load
+    with _open_file_like(f, ""rb"") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 795, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 776, in __init__
+    super().__init__(open(name, mode))  # noqa: SIM115
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'agents/ALE-Freeway-v5_0__prog-net__run_ppo__1/critic.pt'
+"
+agents/ALE-Freeway-v5_1__FAME__run_ppo_FAME__1,ALE-Freeway-v5_1__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,1,1,2.4,True,
+agents/ALE-Freeway-v5_1__cnn-simple__run_ppo__1,ALE-Freeway-v5_1__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,1,1,0.0,True,
+agents/ALE-Freeway-v5_1__dino-simple__run_ppo__1,ALE-Freeway-v5_1__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,1,1,0.1,True,
+agents/ALE-Freeway-v5_1__packnet__run_ppo__1,ALE-Freeway-v5_1__packnet__run_ppo__1,packnet,ALE/Freeway-v5,1,1,0.0,True,
+agents/ALE-Freeway-v5_2__FAME__run_ppo_FAME__1,ALE-Freeway-v5_2__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,2,1,2.2,True,
+agents/ALE-Freeway-v5_2__cnn-simple__run_ppo__1,ALE-Freeway-v5_2__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,2,1,0.0,True,
+agents/ALE-Freeway-v5_2__dino-simple__run_ppo__1,ALE-Freeway-v5_2__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,2,1,0.0,True,
+agents/ALE-Freeway-v5_2__packnet__run_ppo__1,ALE-Freeway-v5_2__packnet__run_ppo__1,packnet,ALE/Freeway-v5,2,1,0.0,True,
+agents/ALE-Freeway-v5_3__FAME__run_ppo_FAME__1,ALE-Freeway-v5_3__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,3,1,9.1,True,
+agents/ALE-Freeway-v5_3__cnn-simple__run_ppo__1,ALE-Freeway-v5_3__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,3,1,0.0,True,
+agents/ALE-Freeway-v5_3__dino-simple__run_ppo__1,ALE-Freeway-v5_3__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,3,1,0.0,True,
+agents/ALE-Freeway-v5_3__packnet__run_ppo__1,ALE-Freeway-v5_3__packnet__run_ppo__1,packnet,ALE/Freeway-v5,3,1,0.4,True,
+agents/ALE-Freeway-v5_4__FAME__run_ppo_FAME__1,ALE-Freeway-v5_4__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,4,1,18.8,True,
+agents/ALE-Freeway-v5_4__cnn-simple__run_ppo__1,ALE-Freeway-v5_4__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,4,1,0.2,True,
+agents/ALE-Freeway-v5_4__dino-simple__run_ppo__1,ALE-Freeway-v5_4__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,4,1,16.7,True,
+agents/ALE-Freeway-v5_4__packnet__run_ppo__1,ALE-Freeway-v5_4__packnet__run_ppo__1,packnet,ALE/Freeway-v5,4,1,8.6,True,
+agents/ALE-Freeway-v5_5__FAME__run_ppo_FAME__1,ALE-Freeway-v5_5__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,5,1,6.2,True,
+agents/ALE-Freeway-v5_5__cnn-simple__run_ppo__1,ALE-Freeway-v5_5__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,5,1,0.0,True,
+agents/ALE-Freeway-v5_5__dino-simple__run_ppo__1,ALE-Freeway-v5_5__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,5,1,0.0,True,
+agents/ALE-Freeway-v5_5__packnet__run_ppo__1,ALE-Freeway-v5_5__packnet__run_ppo__1,packnet,ALE/Freeway-v5,5,1,0.0,True,
+agents/ALE-Freeway-v5_6__FAME__run_ppo_FAME__1,ALE-Freeway-v5_6__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,6,1,6.9,True,
+agents/ALE-Freeway-v5_6__cnn-simple__run_ppo__1,ALE-Freeway-v5_6__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,6,1,0.0,True,
+agents/ALE-Freeway-v5_6__dino-simple__run_ppo__1,ALE-Freeway-v5_6__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,6,1,0.0,True,
+agents/ALE-Freeway-v5_6__packnet__run_ppo__1,ALE-Freeway-v5_6__packnet__run_ppo__1,packnet,ALE/Freeway-v5,6,1,0.0,True,
+agents/ALE-Freeway-v5_7__FAME__run_ppo_FAME__1,ALE-Freeway-v5_7__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,7,1,13.4,True,
+agents/ALE-Freeway-v5_7__cnn-simple__run_ppo__1,ALE-Freeway-v5_7__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,7,1,0.2,True,
+agents/ALE-Freeway-v5_7__dino-simple__run_ppo__1,ALE-Freeway-v5_7__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,7,1,9.1,True,
+agents/ALE-Freeway-v5_7__packnet__run_ppo__1,ALE-Freeway-v5_7__packnet__run_ppo__1,packnet,ALE/Freeway-v5,7,1,0.3,True,
+
+
+============================================================
+Results saved to: results_20260414_072513.csv
+
+============================================================
+SUMMARY BY ALGORITHM
+============================================================
+            avg_return             success
+                  mean   std count     sum
+algorithm                                 
+FAME              8.86  5.68     8       8
+cnn-simple        1.61  4.40     8       8
+dino-simple       3.25  6.29     8       8
+packnet           2.41  4.27     8       8
+prog-net           NaN   NaN     0       0
+
+============================================================
+SUCCESS RATE BY ALGORITHM
+============================================================
+             sum  count   rate
+algorithm                     
+FAME           8      8  100.0
+cnn-simple     8      8  100.0
+dino-simple    8      8  100.0
+packnet        8      8  100.0
+prog-net       0      1    0.0
+FAME/Atari/benchmark_experiments.sh: line 69: cho: command not found
+=========================================
+Benchmark and evaluation complete!
+=========================================

@@ -19,7 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
+*.pt
 # Virtual environments
 venv/
 env/
@@ -52,6 +52,9 @@ checkpoints/
 # Logs
 *.log
 logs/
+
+# TensorBoard
+runs/
 
 # Environment variables
 .env

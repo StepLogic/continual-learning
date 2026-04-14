@@ -1,0 +1,579 @@
+model_path,model_name,algorithm,environment,mode,seed,avg_return,success,error
+agents/ALE-Freeway-v5_0__FAME__run_ppo_FAME__1,ALE-Freeway-v5_0__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_0__cnn-simple__run_ppo__1,ALE-Freeway-v5_0__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_0__dino-simple__run_ppo__1,ALE-Freeway-v5_0__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_0__packnet__run_ppo__1,ALE-Freeway-v5_0__packnet__run_ppo__1,packnet,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_0__prog-net__run_ppo__1,ALE-Freeway-v5_0__prog-net__run_ppo__1,prog-net,ALE/Freeway-v5,0,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 119, in <module>
+    agent = ProgressiveNetAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/progressive_net.py"", line 59, in load
+    model.actor = torch.load(f""{dirname}/actor.pt"", map_location=map_location)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL torch.nn.modules.linear.Linear was not an allowed global by default. Please use `torch.serialization.add_safe_globals([torch.nn.modules.linear.Linear])` or the `torch.serialization.safe_globals([torch.nn.modules.linear.Linear])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_1__FAME__run_ppo_FAME__1,ALE-Freeway-v5_1__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,1,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_1__cnn-simple__run_ppo__1,ALE-Freeway-v5_1__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,1,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_1__dino-simple__run_ppo__1,ALE-Freeway-v5_1__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,1,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_1__packnet__run_ppo__1,ALE-Freeway-v5_1__packnet__run_ppo__1,packnet,ALE/Freeway-v5,1,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_2__FAME__run_ppo_FAME__1,ALE-Freeway-v5_2__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,2,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_2__cnn-simple__run_ppo__1,ALE-Freeway-v5_2__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,2,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_2__dino-simple__run_ppo__1,ALE-Freeway-v5_2__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,2,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_2__packnet__run_ppo__1,ALE-Freeway-v5_2__packnet__run_ppo__1,packnet,ALE/Freeway-v5,2,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_3__FAME__run_ppo_FAME__1,ALE-Freeway-v5_3__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,3,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_3__cnn-simple__run_ppo__1,ALE-Freeway-v5_3__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,3,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_3__dino-simple__run_ppo__1,ALE-Freeway-v5_3__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,3,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_3__packnet__run_ppo__1,ALE-Freeway-v5_3__packnet__run_ppo__1,packnet,ALE/Freeway-v5,3,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_4__FAME__run_ppo_FAME__1,ALE-Freeway-v5_4__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,4,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_4__cnn-simple__run_ppo__1,ALE-Freeway-v5_4__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,4,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_4__dino-simple__run_ppo__1,ALE-Freeway-v5_4__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,4,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_4__packnet__run_ppo__1,ALE-Freeway-v5_4__packnet__run_ppo__1,packnet,ALE/Freeway-v5,4,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_5__FAME__run_ppo_FAME__1,ALE-Freeway-v5_5__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,5,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_5__cnn-simple__run_ppo__1,ALE-Freeway-v5_5__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,5,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_5__dino-simple__run_ppo__1,ALE-Freeway-v5_5__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,5,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_5__packnet__run_ppo__1,ALE-Freeway-v5_5__packnet__run_ppo__1,packnet,ALE/Freeway-v5,5,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_6__FAME__run_ppo_FAME__1,ALE-Freeway-v5_6__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,6,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_6__cnn-simple__run_ppo__1,ALE-Freeway-v5_6__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,6,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_6__dino-simple__run_ppo__1,ALE-Freeway-v5_6__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,6,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_6__packnet__run_ppo__1,ALE-Freeway-v5_6__packnet__run_ppo__1,packnet,ALE/Freeway-v5,6,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"
+agents/ALE-Freeway-v5_7__FAME__run_ppo_FAME__1,ALE-Freeway-v5_7__FAME__run_ppo_FAME__1,FAME,ALE/Freeway-v5,7,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 126, in <module>
+    agent.network = torch.load(f""{args.load}/encoder_fast.pt"", map_location=device)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_7__cnn-simple__run_ppo__1,ALE-Freeway-v5_7__cnn-simple__run_ppo__1,cnn-simple,ALE/Freeway-v5,7,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 91, in <module>
+    agent = CnnSimpleAgent.load(
+            ^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/cnn_simple.py"", line 41, in load
+    model.network = torch.load(f""{dirname}/encoder.pt"", map_location=map_location)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/serialization.py"", line 1578, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, [1mdo those steps only if you trust the source of the checkpoint[0m. 
+	(1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+	(2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+	WeightsUnpickler error: Unsupported global: GLOBAL models.cnn_encoder.CnnEncoder was not an allowed global by default. Please use `torch.serialization.add_safe_globals([models.cnn_encoder.CnnEncoder])` or the `torch.serialization.safe_globals([models.cnn_encoder.CnnEncoder])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+"
+agents/ALE-Freeway-v5_7__dino-simple__run_ppo__1,ALE-Freeway-v5_7__dino-simple__run_ppo__1,dino-simple,ALE/Freeway-v5,7,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Using cache found in /home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn(""xFormers is not available (SwiGLU)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn(""xFormers is not available (Attention)"")
+/home/kojogyaase/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn(""xFormers is not available (Block)"")
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 146, in <module>
+    action, _, _, _ = agent.get_action_and_value(observation)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_simple.py"", line 35, in get_action_and_value
+    hidden = self.middle(self.dino.encode(x * 255.0))  # denormalize
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/dino_encoder.py"", line 35, in encode
+    x = x.permute(0, 3, 1, 2)  # x: (batch * n_stack, n_channles, h, w)
+        ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 3 is not equal to len(dims) = 4
+"
+agents/ALE-Freeway-v5_7__packnet__run_ppo__1,ALE-Freeway-v5_7__packnet__run_ppo__1,packnet,ALE/Freeway-v5,7,1,,False,"A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+Traceback (most recent call last):
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/test_agent.py"", line 102, in <module>
+    agent.network.set_view(task_id)
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/continual_rl_benchmark/venv/lib/python3.12/site-packages/torch/utils/_contextlib.py"", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari/models/packnet.py"", line 188, in set_view
+    p.data *= torch.logical_and(mask <= task_id, mask > 0)
+                                ^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Tensor' and 'NoneType'
+"

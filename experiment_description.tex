@@ -1,0 +1,75 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{Continual Reinforcement Learning Benchmark Experiments}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Evaluation Environment}
+
+We evaluate continual RL methods on the \textbf{MetaWorld ML10 benchmark}, a suite of 10 robotic manipulation tasks using a Sawyer arm. The agent must sequentially learn each task and retain knowledge across task switches.
+
+\subsection{Task Sequence}
+
+\begin{table}[h]
+\centering
+\caption{MetaWorld ML10 task sequence. Each task is trained for 400k steps before switching.}
+\label{tab:tasks}
+\begin{tabular}{cl}
+\toprule
+Task & Description \\
+\midrule
+1 & \texttt{reach-v3} --- Reach target position \\
+2 & \texttt{push-v3} --- Push object to goal \\
+3 & \texttt{pick-place-v3} --- Pick and place object \\
+4 & \texttt{door-open-v3} --- Open door by handle \\
+5 & \texttt{drawer-close-v3} --- Close drawer \\
+6 & \texttt{button-press-topdown-v3} --- Press button from above \\
+7 & \texttt{peg-insert-side-v3} --- Insert peg in side slot \\
+8 & \texttt{window-open-v3} --- Open sliding window \\
+9 & \texttt{sweep-v3} --- Sweep object off table \\
+10 & \texttt{basketball-v3} --- Put ball in hoop \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Environment Details}
+
+\begin{itemize}
+    \item \textbf{Observation}: 39-dimensional state vector (end-effector position, velocity, gripper state, object/target positions)
+    \item \textbf{Action}: 4-dimensional continuous control (end-effector XYZ + gripper)
+    \item \textbf{Steps per task}: 400,000
+    \item \textbf{Total training}: 4,000,000 steps (4 full cycles through all tasks)
+    \item \textbf{Evaluation}: Every 50k steps, 10 episodes per task
+\end{itemize}
+
+\section{Baselines}
+
+We compare the following continual RL methods:
+
+\begin{table}[h]
+\centering
+\caption{Baseline methods evaluated on MetaWorld ML10.}
+\label{tab:baselines}
+\begin{tabular}{ll}
+\toprule
+Method & Description \\
+\midrule
+\textbf{SAC (Base)} & Standard Soft Actor-Critic \\
+\textbf{Fast TRAC} & Parameter-free optimizer with gradient clipping \\
+\textbf{Parseval} & Orthogonality-regularized networks \\
+\textbf{Dual-Learner} & Fast/slow knowledge integration \\
+\textbf{World Model} & MPC planning with learned dynamics \\
+\textbf{Dual Actor} & Current + distilled actor architecture \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All methods share identical hyperparameters where applicable: learning rate $3 \times 10^{-4}$, batch size 256, replay buffer 1M transitions, $\gamma=0.99$, $\tau=0.005$.
+
+\end{document}

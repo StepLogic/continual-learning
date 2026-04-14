@@ -1,0 +1,23 @@
+defaults:
+  - method: base
+  - env: continual_world
+  - _self_
+
+# Experiment settings
+experiment:
+  name: "benchmark"
+  smoke_test: false
+  full_benchmark: false
+
+# Training config
+training:
+  total_steps: 1000000
+  eval_interval: 10000
+  eval_episodes: 10
+  log_interval: 1000
+
+# Seed
+seed: 0
+
+# Device
+device: "cuda"
