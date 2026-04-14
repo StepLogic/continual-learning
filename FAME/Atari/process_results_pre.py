@@ -9,7 +9,8 @@ method = 'FAME' # FAME, packnet
 # method = 'packnet' # FAME, packnet
 Game = 'Freeway'
 # Game = 'SpaceInvaders'
-N_modes = 8 if Game == 'Freeway' else 10
+# Game = 'Breakout'
+N_modes = 1 if Game == 'Breakout' else (8 if Game == 'Freeway' else 10)
 N_seed = 3
 
 LOOP_seed = True

@@ -54,6 +54,14 @@ def style(fig, ax=None, grid=True, legend=True, legend_title=None, legend_ncols=
         ax.yaxis.set_tick_params(size=0)
 
 SETTINGS = {
+    "Breakout": dict(
+        ma_w_1=10,
+        num_pts_sc=100,
+        sc_percent=1.0,
+        chunk_avg_w=30,
+        ma_w_extra=30,
+        ma_std_extra=10,
+    ),
     "SpaceInvaders": dict(
         ma_w_1=10,
         num_pts_sc=100,
@@ -112,7 +120,7 @@ def parse_args():
     # parser.add_argument("--eval-results", type=str, default="data/eval_results.csv",
     #                     help="path to the file where the CSV with the evaluation results is located")
     parser.add_argument("--data-dir", type=str, default="data_FAME/envs/Freeway", ########### need to be changed
-        choices=["data_FAME/envs/Freeway", "data_FAME/envs/SpaceInvaders"],
+        choices=["data_FAME/envs/Breakout", "data_FAME/envs/Freeway", "data_FAME/envs/SpaceInvaders"],
         help="path to the directory where the CSV of each task is stored")
     parser.add_argument("--eval-results", type=str, default="data_FAME/eval_results.csv",
         help="path to the file where the CSV with the evaluation results is located")

@@ -11,7 +11,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--algorithm", type=str, choices=["cnn-simple", "componet", "finetune", "from-scratch", "prog-net", "packnet", 'fame', "dino-simple"], default="fame")
-    parser.add_argument("--env", type=str,choices=["ALE/SpaceInvaders-v5", "ALE/Freeway-v5"], default="ALE/Freeway-v5")
+    parser.add_argument("--env", type=str,choices=["ALE/Breakout-v5", "ALE/SpaceInvaders-v5", "ALE/Freeway-v5"], default="ALE/Freeway-v5")
     parser.add_argument("--seed", type=int, required=False, default=1, help='[1,10]')
     # parser.add_argument("--iter", type=int, required=False, default=1e6)
 
@@ -82,7 +82,7 @@ for i, task_id in enumerate(modes[first_idx:]):
 
         # Fame:
         if args.algorithm == "fame":
-            game = args.env.split("/")[-1].split('-')[-1]  # e.g., SpaceInvaders, Freeway
+            game = args.env.split("/")[-1].replace("-v5", "")  # e.g., Breakout, SpaceInvaders, Freeway
             params += f" --buffer_path data_FAME/{game}_buffer_" # + meta/fast/fast2meta.pkl
 
 

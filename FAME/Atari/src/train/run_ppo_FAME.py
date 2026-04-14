@@ -446,7 +446,7 @@ if __name__ == "__main__":
         BATCHSIZE = 64
         # exp_replay_fast = expReplay(batch_size=BATCHSIZE, device=device)  # no need for fast learner buffer
         # fast2meta: contribute to the data in meta learner; learn the classifier
-        game = args.env_id.split("/")[-1].split('-')[0]  # e.g., SpaceInvaders, Freeway
+        game = args.env_id.split("/")[-1].replace("-v5", "")  # e.g., Breakout, SpaceInvaders, Freeway
         exp_replay_fast2meta = expReplay_Meta(max_size=args.size_fast2meta, batch_size=BATCHSIZE, device=device)
         exp_replay_meta = expReplay_Meta(max_size=args.size_meta, batch_size=BATCHSIZE, device=device)
 

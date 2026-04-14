@@ -1,28 +1,43 @@
 #!/bin/bash
-# SLURM Job Script for Atari FAME Benchmark
-# Submit with: sbatch slurm.sh
-# Or array job: sbatch --array=0-4 slurm.sh
+# SLURM Job Script for Atari FAME Benchmark (3 games)
+# Games: Breakout, SpaceInvaders, Freeway
+#
+# Submit single game:
+#   sbatch slurm.sh
+#   sbatch slurm.sh <game> <timesteps>
+#
+# Submit array job (multiple seeds):
+#   sbatch --array=1-3 slurm.sh
+#   sbatch --array=1-3 slurm.sh ALE/SpaceInvaders-v5 1000000
+#
+# Run all 3 games sequentially:
+#   sbatch slurm.sh all 1000000
+#
+# Quick test (10k steps, 1 seed, Breakout only):
+#   sbatch slurm.sh ALE/Breakout-v5 10000
 
 #SBATCH --job-name=atari_fame        # Job name
 #SBATCH --partition=gpu              # Partition/Queue name
 #SBATCH --mail-type=END,FAIL         # Mail events
 #SBATCH --mail-user=egyaase@maine.edu # Where to send mail
 #SBATCH --ntasks=1                   # Run on single node
-#SBATCH --cpus-per-task=4            # Run with 4 threads (RTX 4050 laptop GPU)
-#SBATCH --mem=16gb                   # Job memory request (16GB fits 22GB system RAM)
-#SBATCH --time=48:00:00              # Time limit hrs:min:sec
-#SBATCH --gres=gpu:1                 # Request 1 GPU (RTX 4050 6GB)
-#SBATCH --output=logs/fame_%j_%A_%a.log # Standard output and error log
+#SBATCH --cpus-per-task=4            # Run with 4 threads
+#SBATCH --mem=32gb                   # Job memory request
+#SBATCH --time=96:00:00              # Time limit hrs:min:sec
+#SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --output=logs/fame_%j_%A_%a.log
 
-# Set headless rendering for HPC
+# Headless rendering for HPC (Atari uses pygame/SDL, disable display)
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
+export SDL_VIDEODRIVER=dummy
+export SDL_AUDIODRIVER=dummy
 
 # Change to project directory
 cd /media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari
 
-# Create logs directory
-mkdir -p logs
+# Create directories
+mkdir -p logs agents data_FAME runs
 
 # ============================================
 # Anaconda Environment Setup
@@ -33,27 +48,17 @@ echo "============================================"
 echo "Setting up Anaconda environment"
 echo "============================================"
 
-# Load anaconda module
 module load anaconda3
-
-# Initialize conda for this shell
 $INIT_CONDA
 
-# Check if environment exists, create if not
 if ! conda env list | grep -q "^${ENV_NAME} "; then
     echo "Conda environment '${ENV_NAME}' not found. Creating..."
-
-    # Create conda environment with Python 3.10
     conda create -n ${ENV_NAME} python=3.10 -y
-
-    # Activate environment
     conda activate ${ENV_NAME}
 
-    # Install PyTorch with CUDA support
     echo "Installing PyTorch with CUDA..."
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-    # Install Atari/Gymnasium dependencies
     echo "Installing Atari and Gymnasium dependencies..."
     pip install gymnasium[atari]==0.28.1
     pip install ale-py==0.8.1
@@ -67,8 +72,10 @@ if ! conda env list | grep -q "^${ENV_NAME} "; then
     pip install pandas>=2.0.0
     pip install matplotlib>=3.7.0
     pip install seaborn>=0.12.0
+    pip install scipy
+    pip install tabulate
+    pip install colormaps
 
-    # Install ROMs
     echo "Installing AutoROM with accepted license..."
     pip install autorom[accept-rom-license]==0.4.2
 
@@ -78,80 +85,112 @@ else
     conda activate ${ENV_NAME}
 fi
 
-# Verify environment
 echo ""
 echo "Environment verification:"
-echo "  Python version: $(python --version)"
-echo "  PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
-echo "  CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
-echo "  CUDA device: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
+echo "  Python: $(python --version)"
+echo "  PyTorch: $(python -c 'import torch; print(torch.__version__)')"
+echo "  CUDA: $(python -c 'import torch; print(torch.cuda.is_available())')"
+echo "  GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
 echo "============================================"
 
 # ============================================
-# Run Atari FAME Benchmark
+# Configuration
 # ============================================
 
-# Get seed from SLURM array task ID or use default
+# Seed from SLURM array task ID or default
 SEED=${SLURM_ARRAY_TASK_ID:-1}
 
-# Algorithm to run (can be passed as argument)
-ALGORITHM=${1:-fame}
+# Game: can be passed as first argument, or "all" for 3-game benchmark
+GAME=all
 
-# Environment to run (can be passed as argument)
-ENV=${2:-ALE/Freeway-v5}
+# Timesteps per task: can be passed as second argument
+#   10000   = quick test
+#   100000  = short run
+#   1000000 = full run (paper default)
+TIMESTEPS=${2:-1000000}
 
-# Total timesteps per task (use 100000 for quick tests, 1000000 for full runs)
-TIMESTEPS=${3:-100000}
+# Supported games and their mode counts
+declare -A GAME_MODES
+GAME_MODES["ALE/Breakout-v5"]=1
+GAME_MODES["ALE/SpaceInvaders-v5"]=10
+GAME_MODES["ALE/Freeway-v5"]=8
+
+# ============================================
+# Run FAME Benchmark
+# ============================================
+
+run_game() {
+    local env="$1"
+    local n_modes="${GAME_MODES[$env]}"
+    local game_name=$(echo "$env" | sed 's/ALE\///;s/-v5//')
+
+    echo ""
+    echo "=========================================="
+    echo "Running FAME on ${env} (${n_modes} mode(s))"
+    echo "=========================================="
+    echo "Seed: ${SEED}"
+    echo "Timesteps per task: ${TIMESTEPS}"
+    echo "Timestamp: $(date)"
+    echo "=========================================="
+    echo ""
+
+    # Create game-specific data directory
+    mkdir -p "data_FAME/envs/${game_name}"
+
+    # Run FAME via run_ppo_FAME.py (handles all modes sequentially)
+    python3 run_ppo_FAME.py \
+        --model-type=FAME \
+        --env-id="${env}" \
+        --seed=${SEED} \
+        --save-dir=agents \
+        --total-timesteps=${TIMESTEPS} \
+        --epoch_meta=200 \
+        --buffer_path="data_FAME/${game_name}_buffer_"
+
+    local rc=$?
+    if [ $rc -eq 0 ]; then
+        echo "FAME on ${env}: SUCCESS"
+    else
+        echo "FAME on ${env}: FAILED (exit $rc)"
+    fi
+    return $rc
+}
+
+if [ "$GAME" = "all" ]; then
+    # Run all 3 games sequentially
+    echo ""
+    echo "=========================================="
+    echo "FAME Benchmark: All 3 Games (HPC)"
+    echo "=========================================="
+    echo "Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)"
+    echo "Seed: ${SEED}"
+    echo "Timesteps per task: ${TIMESTEPS}"
+    echo "Timestamp: $(date)"
+    echo "=========================================="
+
+    FAILED=0
+
+    for env in "ALE/Breakout-v5" "ALE/SpaceInvaders-v5" "ALE/Freeway-v5"; do
+        run_game "$env"
+        if [ $? -ne 0 ]; then
+            FAILED=$((FAILED + 1))
+        fi
+    done
+
+    echo ""
+    echo "=========================================="
+    echo "BENCHMARK COMPLETE"
+    echo "=========================================="
+    if [ $FAILED -eq 0 ]; then
+        echo "All games completed successfully!"
+    else
+        echo "${FAILED} game(s) failed. Check logs for details."
+        exit 1
+    fi
+else
+    # Run single game
+    run_game "$GAME"
+fi
 
 echo ""
-echo "============================================"
-echo "Starting Atari FAME Benchmark (HPC)"
-echo "============================================"
-echo "Algorithm: ${ALGORITHM}"
-echo "Environment: ${ENV}"
-echo "Seed: ${SEED}"
-echo "Timesteps per task: ${TIMESTEPS}"
-echo "MUJOCO_GL: ${MUJOCO_GL}"
-echo "Timestamp: $(date)"
-echo "============================================"
-echo ""
-
-# Run the benchmark
-python run_experiments.py \
-    --algorithm "${ALGORITHM}" \
-    --env "${ENV}" \
-    --seed ${SEED} \
-    --timesteps ${TIMESTEPS} \
-    --start-mode 0
-
-echo ""
-echo "============================================"
 echo "Benchmark completed at $(date)"
-echo "============================================"
-
-# ============================================
-# PIP Install Commands Reference
-# ============================================
-# If you need to manually install dependencies, run:
-#
-#   module load anaconda3
-#   source $(conda info --base)/etc/profile.d/conda.sh
-#   conda activate continual-learning
-#
-#   # PyTorch with CUDA
-#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-#
-#   # Atari/Gymnasium
-#   pip install gymnasium[atari]==0.28.1 ale-py==0.8.1
-#   pip install stable-baselines3==2.0.0
-#   pip install tensorboard==2.11.2
-#   pip install opencv-python==4.7.0.72
-#
-#   # ROMs
-#   pip install autorom[accept-rom-license]==0.4.2
-#
-#   # Utilities
-#   pip install absl-py==1.4.0 tyro==0.5.10 tqdm>=4.65.0
-#   pip install numpy>=1.24.0 pandas>=2.0.0 matplotlib>=3.7.0 seaborn>=0.12.0
-#
-# ============================================

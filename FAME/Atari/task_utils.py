@@ -1,4 +1,5 @@
 TASKS = {
+    "ALE/Breakout-v5": [0],
     "ALE/SpaceInvaders-v5": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     "ALE/Freeway-v5": [0, 1, 2, 3, 4, 5, 6, 7],
 }
@@ -6,7 +7,9 @@ TASKS = {
 
 def parse_name_info(name):
     fields = name.split("__")
-    if "SpaceInvaders" in fields[0]:
+    if "Breakout" in fields[0]:
+        env = "ALE/Breakout-v5"
+    elif "SpaceInvaders" in fields[0]:
         env = "ALE/SpaceInvaders-v5"
     elif "Freeway" in fields[0]:
         env = "ALE/Freeway-v5"

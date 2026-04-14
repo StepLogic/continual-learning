@@ -10,7 +10,7 @@
 #   ./benchmark_experiments.sh [OPTIONS]
 #
 # Options:
-#   --env=ENV            Game (default: both Freeway and SpaceInvaders)
+#   --env=ENV            Game (default: Breakout, Freeway, and SpaceInvaders)
 #   --seeds=1,2,3        Comma-separated seeds (default: 1,2,3)
 #   --timesteps=N        Timesteps per task (default: 1000000)
 #   --algorithms=LIST    Comma-separated list (default: all)
@@ -30,7 +30,7 @@
 #   dino-simple   DINO vision transformer encoder (optional, slow)
 #
 # Games:
-#   ALE/Freeway-v5       8 game modes
+#   ALE/Breakout-v5       1 game mode
 #   ALE/SpaceInvaders-v5 10 game modes
 # ============================================================================
 
@@ -76,7 +76,7 @@ fi
 
 # ---- Defaults ----
 if [ -z "$ENVS" ]; then
-    ENVS="ALE/Freeway-v5,ALE/SpaceInvaders-v5"
+    ENVS="ALE/Breakout-v5,ALE/Freeway-v5,ALE/SpaceInvaders-v5"
 fi
 
 if [ -z "$ALGORITHMS" ]; then
@@ -85,6 +85,7 @@ fi
 
 # ---- Task structure per game ----
 declare -A GAME_MODES
+GAME_MODES["ALE/Breakout-v5"]=1
 GAME_MODES["ALE/Freeway-v5"]=8
 GAME_MODES["ALE/SpaceInvaders-v5"]=10
 
