@@ -52,31 +52,7 @@ echo "  CUDA: $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo "  GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
 echo "============================================"
 
-# ============================================
-# Configuration
-# ============================================
-
-# Seed from SLURM array task ID or default
-SEED=${SLURM_ARRAY_TASK_ID:-1}
-
-# Timesteps per task (1M = paper default)
-TIMESTEPS=1000000
-
-# ============================================
-# Run FAME Benchmark on all 3 games
-# ============================================
-
-echo ""
-echo "=========================================="
-echo "FAME Benchmark: All 3 Games (HPC)"
-echo "=========================================="
-echo "Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)"
-echo "Seed: ${SEED}"
-echo "Timesteps per task: ${TIMESTEPS}"
-echo "Timestamp: $(date)"
-echo "=========================================="
-
-bash run_fame_cross_game.sh
+bash FAME/Atari/run_fame_cross_game.sh
 
 echo ""
 echo "=========================================="
