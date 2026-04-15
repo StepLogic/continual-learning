@@ -1,0 +1,17 @@
+{
+  "mean_return": 0.0,
+  "std_return": 0.0,
+  "random_return": 0.3333333333333333,
+  "episodes": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "eval_episodes": 5,
+  "checkpoint": "agents/ALE-Freeway-v5_2__packnet__run_ppo__1",
+  "task_id": 4,
+  "model_type": "packnet",
+  "seed": 1
+}

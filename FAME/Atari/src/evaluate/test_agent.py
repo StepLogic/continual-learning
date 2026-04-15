@@ -34,6 +34,13 @@ def parse_arguments():
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--mode", type=int, default=None)
 
+    # Cross-game evaluation: override test environment (e.g., train on Freeway, test on Breakout)
+    parser.add_argument("--test-env", type=str, default=None,
+                        choices=["ALE/Breakout-v5", "ALE/SpaceInvaders-v5", "ALE/Freeway-v5"],
+                        help="Test on different game (default: use train game)")
+    parser.add_argument("--test-mode", type=int, default=None,
+                        help="Test on different mode (default: use train mode)")
+
     parser.add_argument("--max-timesteps", type=int, default=1000)
     parser.add_argument("--num-episodes", type=int, default=10)
     parser.add_argument('--render', default=False, action='store_true')
@@ -69,21 +76,23 @@ if __name__ == "__main__":
 
     env_name, train_mode, algorithm, seed = parse_name_info(args.load.split("/")[-1])
 
-    mode = train_mode if args.mode is None else args.mode
+    # Use override if provided, otherwise default to trained values
+    test_env = args.test_env if args.test_env is not None else env_name
+    test_mode = args.test_mode if args.test_mode is not None else train_mode
     seed = seed if args.seed is None else args.seed
 
     print(
-        f"\nEnvironment: {env_name}, train/test mode: {train_mode}/{mode}, algorithm: {algorithm}, seed: {seed}\n"
+        f"\nTrain: {env_name} mode {train_mode} | Test: {test_env} mode {test_mode}, algorithm: {algorithm}, seed: {seed}\n"
     )
 
     # make the environment
     dino = "dino" in algorithm
-    envs = gym.vector.SyncVectorEnv([make_env(env_name, 1, run_name="test", mode=mode, dino=dino)])
+    envs = gym.vector.SyncVectorEnv([make_env(test_env, 1, run_name="test", mode=test_mode, dino=dino)])
     env_fn = make_env(
-        env_name,
+        test_env,
         0,
         run_name="test",
-        mode=mode,
+        mode=test_mode,
         render_mode="human" if args.render else None,
         dino=dino,
     )
@@ -114,11 +123,7 @@ if __name__ == "__main__":
             agent.actor = ac.actor
     elif algorithm == "dino-simple":
         from models import DinoSimpleAgent
-        # DinoSimpleAgent requires loading with specific args
-        agent = DinoSimpleAgent(envs, dino_size="s", frame_stack=4, device=device)
-        agent.middle = torch.load(f"{args.load}/model_middle.pt", map_location=device, weights_only=False)
-        agent.actor = torch.load(f"{args.load}/model_actor.pt", map_location=device, weights_only=False)
-        agent.critic = torch.load(f"{args.load}/model_critic.pt", map_location=device, weights_only=False)
+        agent = DinoSimpleAgent.load(args.load, envs, dino_size="s", frame_stack=4, device=device)
     elif algorithm == "prog-net":
         prevs_paths = [path_from_other_mode(args.load, i) for i in range(mode)]
         agent = ProgressiveNetAgent.load(
@@ -126,11 +131,7 @@ if __name__ == "__main__":
         )
     elif algorithm == "FAME":
         from models import FAMEAgent
-        # FAMEAgent uses _fast suffix for saved models
-        agent = FAMEAgent(envs, fast=True)
-        agent.network = torch.load(f"{args.load}/encoder_fast.pt", map_location=device, weights_only=False)
-        agent.actor = torch.load(f"{args.load}/actor_fast.pt", map_location=device, weights_only=False)
-        agent.critic = torch.load(f"{args.load}/critic_fast.pt", map_location=device, weights_only=False)
+        agent = FAMEAgent.load(args.load, envs, fast=True, map_location=device)
     else:
         print(f"Loading of agent type `{algorithm}` is not implemented.")
         quit(1)
@@ -140,6 +141,16 @@ if __name__ == "__main__":
     #
     # Main loop
     # ~~~~~~~~~
+    # Build action mask for cross-game eval: mask invalid actions with -inf
+    valid_actions = envs.single_action_space.n
+    model_actions = agent.actor.out_features
+    if model_actions > valid_actions:
+        action_mask = torch.zeros(model_actions, device=device)
+        action_mask[:valid_actions] = 1.0
+        action_mask_logits = torch.where(action_mask == 1.0, torch.tensor(0.0, device=device), torch.tensor(float('-inf'), device=device))
+    else:
+        action_mask_logits = torch.zeros(model_actions, device=device)
+
     ep_rets = []
     for _ in range(args.num_episodes):
         observation, info = env.reset(seed=seed)
@@ -148,7 +159,11 @@ if __name__ == "__main__":
         for _ in range(args.max_timesteps):
             observation = torch.from_numpy(np.array(observation)).to(device) / 255.0
             observation = observation.unsqueeze(0)
-            action, _, _, _ = agent.get_action_and_value(observation)
+
+            # Get action with masking for cross-game compatibility
+            hidden = agent.network(observation)
+            logits = agent.actor(hidden) + action_mask_logits
+            action = logits.argmax(dim=-1)  # deterministic
 
             observation, reward, terminated, truncated, info = env.step(
                 action[0].item()

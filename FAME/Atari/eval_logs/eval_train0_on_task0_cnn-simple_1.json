@@ -1,0 +1,17 @@
+{
+  "mean_return": 21.2,
+  "std_return": 2.481934729198171,
+  "random_return": 0.0,
+  "episodes": [
+    20.0,
+    26.0,
+    20.0,
+    21.0,
+    19.0
+  ],
+  "eval_episodes": 5,
+  "checkpoint": "agents/ALE-Freeway-v5_0__cnn-simple__run_ppo__1",
+  "task_id": 0,
+  "model_type": "cnn-simple",
+  "seed": 1
+}

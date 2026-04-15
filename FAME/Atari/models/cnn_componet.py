@@ -64,7 +64,7 @@ class CnnCompoNetAgent(nn.Module):
         return self.critic(self.encoder(x))
 
     def get_action_and_value(
-        self, x, action=None, log_writter=None, global_step=None, prevs_to_noise=0
+        self, x, action=None, deterministic=False, log_writter=None, global_step=None, prevs_to_noise=0
     ):
         if not self.is_compo or global_step is None or log_writter is None:
             p, _phi, hidden = self.actor(
@@ -110,9 +110,13 @@ class CnnCompoNetAgent(nn.Module):
                 )
 
         probs = Categorical(probs=p)
-        if action is None:
+        if deterministic:
+            action = p.argmax(dim=-1)
+        elif action is None:
             action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        logprob = probs.log_prob(action)
+        entropy = probs.entropy()
+        return action, logprob, entropy, self.critic(hidden)
 
     def save(self, dirname):
         os.makedirs(dirname, exist_ok=True)
@@ -122,10 +126,11 @@ class CnnCompoNetAgent(nn.Module):
         torch.save(self.critic, f"{dirname}/critic.pt")
         torch.save(self.encoder, f"{dirname}/encoder.pt")
 
-    def load(dirname, envs, prevs_paths=[], map_location=None):
+    @classmethod
+    def load(cls, dirname, envs, prevs_paths=[], map_location=None):
         print("Loading previous:", prevs_paths)
 
-        model = CnnCompoNetAgent(
+        model = cls(
             envs=envs, prevs_paths=prevs_paths, map_location=map_location
         )
         model.encoder = torch.load(f"{dirname}/encoder.pt", map_location=map_location, weights_only=False)

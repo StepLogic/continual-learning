@@ -1,20 +1,13 @@
 #!/bin/bash
 # SLURM Job Script for Atari FAME Benchmark (3 games)
-# Games: Breakout, SpaceInvaders, Freeway
+# Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)
+# Timesteps: 1M per task (paper default)
 #
-# Submit single game:
+# Submit:
 #   sbatch slurm.sh
-#   sbatch slurm.sh <game> <timesteps>
 #
-# Submit array job (multiple seeds):
+# Array job (multiple seeds):
 #   sbatch --array=1-3 slurm.sh
-#   sbatch --array=1-3 slurm.sh ALE/SpaceInvaders-v5 1000000
-#
-# Run all 3 games sequentially:
-#   sbatch slurm.sh all 1000000
-#
-# Quick test (10k steps, 1 seed, Breakout only):
-#   sbatch slurm.sh ALE/Breakout-v5 10000
 
 #SBATCH --job-name=atari_fame        # Job name
 #SBATCH --partition=gpu              # Partition/Queue name
@@ -100,33 +93,31 @@ echo "============================================"
 # Seed from SLURM array task ID or default
 SEED=${SLURM_ARRAY_TASK_ID:-1}
 
-# Game: can be passed as first argument, or "all" for 3-game benchmark
-GAME=all
-
-# Timesteps per task: can be passed as second argument
-#   10000   = quick test
-#   100000  = short run
-#   1000000 = full run (paper default)
-TIMESTEPS=${2:-1000000}
-
-# Supported games and their mode counts
-declare -A GAME_MODES
-GAME_MODES["ALE/Breakout-v5"]=1
-GAME_MODES["ALE/SpaceInvaders-v5"]=10
-GAME_MODES["ALE/Freeway-v5"]=8
+# Timesteps per task (1M = paper default)
+TIMESTEPS=1000000
 
 # ============================================
-# Run FAME Benchmark
+# Run FAME Benchmark on all 3 games
 # ============================================
 
-run_game() {
-    local env="$1"
-    local n_modes="${GAME_MODES[$env]}"
-    local game_name=$(echo "$env" | sed 's/ALE\///;s/-v5//')
+echo ""
+echo "=========================================="
+echo "FAME Benchmark: All 3 Games (HPC)"
+echo "=========================================="
+echo "Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)"
+echo "Seed: ${SEED}"
+echo "Timesteps per task: ${TIMESTEPS}"
+echo "Timestamp: $(date)"
+echo "=========================================="
+
+FAILED=0
+
+for env in "ALE/Breakout-v5" "ALE/SpaceInvaders-v5" "ALE/Freeway-v5"; do
+    game_name=$(echo "$env" | sed 's/ALE\///;s/-v5//')
 
     echo ""
     echo "=========================================="
-    echo "Running FAME on ${env} (${n_modes} mode(s))"
+    echo "Running FAME on ${env}"
     echo "=========================================="
     echo "Seed: ${SEED}"
     echo "Timesteps per task: ${TIMESTEPS}"
@@ -138,7 +129,7 @@ run_game() {
     mkdir -p "data_FAME/envs/${game_name}"
 
     # Run FAME via run_ppo_FAME.py (handles all modes sequentially)
-    python3 run_ppo_FAME.py \
+    python3 src/train/run_ppo_FAME.py \
         --model-type=FAME \
         --env-id="${env}" \
         --seed=${SEED} \
@@ -147,49 +138,23 @@ run_game() {
         --epoch_meta=200 \
         --buffer_path="data_FAME/${game_name}_buffer_"
 
-    local rc=$?
-    if [ $rc -eq 0 ]; then
+    if [ $? -ne 0 ]; then
+        echo "FAME on ${env}: FAILED"
+        FAILED=$((FAILED + 1))
+    else
         echo "FAME on ${env}: SUCCESS"
-    else
-        echo "FAME on ${env}: FAILED (exit $rc)"
     fi
-    return $rc
-}
+done
 
-if [ "$GAME" = "all" ]; then
-    # Run all 3 games sequentially
-    echo ""
-    echo "=========================================="
-    echo "FAME Benchmark: All 3 Games (HPC)"
-    echo "=========================================="
-    echo "Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)"
-    echo "Seed: ${SEED}"
-    echo "Timesteps per task: ${TIMESTEPS}"
-    echo "Timestamp: $(date)"
-    echo "=========================================="
-
-    FAILED=0
-
-    for env in "ALE/Breakout-v5" "ALE/SpaceInvaders-v5" "ALE/Freeway-v5"; do
-        run_game "$env"
-        if [ $? -ne 0 ]; then
-            FAILED=$((FAILED + 1))
-        fi
-    done
-
-    echo ""
-    echo "=========================================="
-    echo "BENCHMARK COMPLETE"
-    echo "=========================================="
-    if [ $FAILED -eq 0 ]; then
-        echo "All games completed successfully!"
-    else
-        echo "${FAILED} game(s) failed. Check logs for details."
-        exit 1
-    fi
+echo ""
+echo "=========================================="
+echo "BENCHMARK COMPLETE"
+echo "=========================================="
+if [ $FAILED -eq 0 ]; then
+    echo "All games completed successfully!"
 else
-    # Run single game
-    run_game "$GAME"
+    echo "${FAILED} game(s) failed. Check logs for details."
+    exit 1
 fi
 
 echo ""

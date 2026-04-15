@@ -1,0 +1,17 @@
+{
+  "mean_return": 2.2,
+  "std_return": 0.9797958971132712,
+  "random_return": 0.0,
+  "episodes": [
+    3.0,
+    3.0,
+    3.0,
+    1.0,
+    1.0
+  ],
+  "eval_episodes": 5,
+  "checkpoint": "agents/ALE-Freeway-v5_2__dino-simple__run_ppo__1",
+  "task_id": 1,
+  "model_type": "dino-simple",
+  "seed": 1
+}

@@ -264,16 +264,10 @@ if __name__ == "__main__":
                 freeze_bias=True,
             ).to(device)
 
-    # FAME:
+    # FAME must use run_ppo_FAME.py
     elif args.model_type == "FAME":
-
-        agent = FAMEAgent(
-            envs,
-            prevs_paths=args.prev_units,
-            finetune_encoder=args.componet_finetune_encoder,
-            map_location=device,
-            prevs_to_noise=args.prevs_to_noise,
-        ).to(device)
+        print("ERROR: FAME must be trained using run_ppo_FAME.py, not run_ppo.py")
+        quit(1)
 
 
 

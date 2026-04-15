@@ -23,13 +23,19 @@ class FAMEAgent(nn.Module):
     def get_value(self, x):
         return self.critic(self.network(x))
 
-    def get_action_and_value(self, x, action=None):
+    def get_action_and_value(self, x, action=None, deterministic=False):
         hidden = self.network(x)
         logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        if deterministic:
+            action = logits.argmax(dim=-1)
+            probs = Categorical(logits=logits)
+        else:
+            probs = Categorical(logits=logits)
+            if action is None:
+                action = probs.sample()
+        logprob = probs.log_prob(action)
+        entropy = probs.entropy()
+        return action, logprob, entropy, self.critic(hidden)
 
     def forward(self, x):
         hidden = self.network(x)
@@ -43,11 +49,13 @@ class FAMEAgent(nn.Module):
         torch.save(self.network, f"{dirname}/encoder{self.fastmeta}.pt")
         torch.save(self.critic, f"{dirname}/critic{self.fastmeta}.pt")
 
-    def load(self, dirname, envs, load_critic=True, reset_actor=False, map_location=None, ):
-        model = FAMEAgent(envs)
-        model.network = torch.load(f"{dirname}/encoder{self.fastmeta}.pt", map_location=map_location, weights_only=False)
+    @classmethod
+    def load(cls, dirname, envs, fast=True, load_critic=True, reset_actor=False, map_location=None):
+        suffix = '_fast' if fast else '_meta'
+        model = cls(envs, fast=fast)
+        model.network = torch.load(f"{dirname}/encoder{suffix}.pt", map_location=map_location, weights_only=False)
         if not reset_actor:
-            model.actor = torch.load(f"{dirname}/actor{self.fastmeta}.pt", map_location=map_location, weights_only=False)
+            model.actor = torch.load(f"{dirname}/actor{suffix}.pt", map_location=map_location, weights_only=False)
         if load_critic:
-            model.critic = torch.load(f"{dirname}/critic{self.fastmeta}.pt", map_location=map_location, weights_only=False)
+            model.critic = torch.load(f"{dirname}/critic{suffix}.pt", map_location=map_location, weights_only=False)
         return model

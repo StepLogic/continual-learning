@@ -38,13 +38,19 @@ class ProgressiveNetAgent(nn.Module):
         hidden = self.encoder(x)
         return self.critic(hidden)
 
-    def get_action_and_value(self, x, action=None):
+    def get_action_and_value(self, x, action=None, deterministic=False):
         hidden = self.encoder(x)
         logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        if deterministic:
+            action = logits.argmax(dim=-1)
+            probs = Categorical(logits=logits)
+        else:
+            probs = Categorical(logits=logits)
+            if action is None:
+                action = probs.sample()
+        logprob = probs.log_prob(action)
+        entropy = probs.entropy()
+        return action, logprob, entropy, self.critic(hidden)
 
     def save(self, dirname):
         os.makedirs(dirname, exist_ok=True)
@@ -54,8 +60,9 @@ class ProgressiveNetAgent(nn.Module):
         torch.save(self.encoder, f"{dirname}/encoder.pt")
         torch.save(self.critic, f"{dirname}/critic.pt")
 
-    def load(dirname, envs, prevs_paths, map_location=None):
-        model = ProgressiveNetAgent(envs=envs, prevs_paths=prevs_paths)
+    @classmethod
+    def load(cls, dirname, envs, prevs_paths, map_location=None):
+        model = cls(envs=envs, prevs_paths=prevs_paths)
         model.actor = torch.load(f"{dirname}/actor.pt", map_location=map_location, weights_only=False)
         model.encoder = torch.load(f"{dirname}/encoder.pt", map_location=map_location, weights_only=False)
         model.critic = torch.load(f"{dirname}/critic.pt", map_location=map_location, weights_only=False)

@@ -32,13 +32,19 @@ class PackNetAgent(nn.Module):
     def get_value(self, x):
         return self.critic(self.network(x))
 
-    def get_action_and_value(self, x, action=None):
+    def get_action_and_value(self, x, action=None, deterministic=False):
         hidden = self.network(x)
         logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        if deterministic:
+            action = logits.argmax(dim=-1)
+            probs = Categorical(logits=logits)
+        else:
+            probs = Categorical(logits=logits)
+            if action is None:
+                action = probs.sample()
+        logprob = probs.log_prob(action)
+        entropy = probs.entropy()
+        return action, logprob, entropy, self.critic(hidden)
 
     def save(self, dirname):
         # un-do the masking for the current task
@@ -47,7 +53,8 @@ class PackNetAgent(nn.Module):
         os.makedirs(dirname, exist_ok=True)
         torch.save(self, f"{dirname}/packnet.pt")
 
-    def load(
+    @classmethod
+    def load(cls,
         dirname,
         task_id=None,
         restart_actor_critic=False,

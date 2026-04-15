@@ -22,13 +22,19 @@ class CnnSimpleAgent(nn.Module):
     def get_value(self, x):
         return self.critic(self.network(x))
 
-    def get_action_and_value(self, x, action=None):
+    def get_action_and_value(self, x, action=None, deterministic=False):
         hidden = self.network(x)
         logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+        if deterministic:
+            action = logits.argmax(dim=-1)
+            probs = Categorical(logits=logits)
+        else:
+            probs = Categorical(logits=logits)
+            if action is None:
+                action = probs.sample()
+        logprob = probs.log_prob(action)
+        entropy = probs.entropy()
+        return action, logprob, entropy, self.critic(hidden)
 
     def save(self, dirname):
         os.makedirs(dirname, exist_ok=True)
@@ -36,8 +42,9 @@ class CnnSimpleAgent(nn.Module):
         torch.save(self.network, f"{dirname}/encoder.pt")
         torch.save(self.critic, f"{dirname}/critic.pt")
 
-    def load(dirname, envs, load_critic=True, reset_actor=False, map_location=None):
-        model = CnnSimpleAgent(envs)
+    @classmethod
+    def load(cls, dirname, envs, load_critic=True, reset_actor=False, map_location=None):
+        model = cls(envs)
         model.network = torch.load(f"{dirname}/encoder.pt", map_location=map_location, weights_only=False)
         if not reset_actor:
             model.actor = torch.load(f"{dirname}/actor.pt", map_location=map_location, weights_only=False)
