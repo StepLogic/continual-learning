@@ -52,7 +52,7 @@ echo "  CUDA: $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo "  GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
 echo "============================================"
 
-bash FAME/Atari/run_fame_cross_game.sh
+bash run_fame_cross_game.sh
 
 echo ""
 echo "=========================================="
