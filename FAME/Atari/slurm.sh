@@ -44,39 +44,8 @@ echo "============================================"
 module load anaconda3
 $INIT_CONDA
 
-if ! conda env list | grep -q "^${ENV_NAME} "; then
-    echo "Conda environment '${ENV_NAME}' not found. Creating..."
-    conda create -n ${ENV_NAME} python=3.10 -y
-    conda activate ${ENV_NAME}
-
-    echo "Installing PyTorch with CUDA..."
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-    echo "Installing Atari and Gymnasium dependencies..."
-    pip install gymnasium[atari]==0.28.1
-    pip install ale-py==0.8.1
-    pip install stable-baselines3==2.0.0
-    pip install tensorboard==2.11.2
-    pip install opencv-python==4.7.0.72
-    pip install absl-py==1.4.0
-    pip install tyro==0.5.10
-    pip install tqdm>=4.65.0
-    pip install numpy>=1.24.0
-    pip install pandas>=2.0.0
-    pip install matplotlib>=3.7.0
-    pip install seaborn>=0.12.0
-    pip install scipy
-    pip install tabulate
-    pip install colormaps
-
-    echo "Installing AutoROM with accepted license..."
-    pip install autorom[accept-rom-license]==0.4.2
-
-    echo "Conda environment setup complete!"
-else
-    echo "Conda environment '${ENV_NAME}' found. Activating..."
-    conda activate ${ENV_NAME}
-fi
+echo "Conda environment '${ENV_NAME}' found. Activating..."
+conda activate ${ENV_NAME}
 
 echo ""
 echo "Environment verification:"
@@ -110,41 +79,7 @@ echo "Timesteps per task: ${TIMESTEPS}"
 echo "Timestamp: $(date)"
 echo "=========================================="
 
-FAILED=0
-
-for env in "ALE/Breakout-v5" "ALE/SpaceInvaders-v5" "ALE/Freeway-v5"; do
-    game_name=$(echo "$env" | sed 's/ALE\///;s/-v5//')
-
-    echo ""
-    echo "=========================================="
-    echo "Running FAME on ${env}"
-    echo "=========================================="
-    echo "Seed: ${SEED}"
-    echo "Timesteps per task: ${TIMESTEPS}"
-    echo "Timestamp: $(date)"
-    echo "=========================================="
-    echo ""
-
-    # Create game-specific data directory
-    mkdir -p "data_FAME/envs/${game_name}"
-
-    # Run FAME via run_ppo_FAME.py (handles all modes sequentially)
-    python3 src/train/run_ppo_FAME.py \
-        --model-type=FAME \
-        --env-id="${env}" \
-        --seed=${SEED} \
-        --save-dir=agents \
-        --total-timesteps=${TIMESTEPS} \
-        --epoch_meta=200 \
-        --buffer_path="data_FAME/${game_name}_buffer_"
-
-    if [ $? -ne 0 ]; then
-        echo "FAME on ${env}: FAILED"
-        FAILED=$((FAILED + 1))
-    else
-        echo "FAME on ${env}: SUCCESS"
-    fi
-done
+bash run_fame_cross_game.sh
 
 echo ""
 echo "=========================================="
