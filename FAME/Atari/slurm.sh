@@ -26,9 +26,6 @@ export PYOPENGL_PLATFORM=egl
 export SDL_VIDEODRIVER=dummy
 export SDL_AUDIODRIVER=dummy
 
-# Change to project directory
-cd /media/kojogyaase/disk_two/Research/continual_learning/FAME/Atari
-
 # Create directories
 mkdir -p logs agents data_FAME runs
 
