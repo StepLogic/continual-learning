@@ -46,7 +46,7 @@ echo "PHASE 1: TRAINING (Cross-Game)"
 echo "=============================================="
 echo ""
 
-python3 src/train/run_ppo_FAME_cross_game.py \
+python3 run_ppo_FAME_cross_game.py \
     --model-type=FAME \
     --seed=${SEED} \
     --save-dir=agents \
