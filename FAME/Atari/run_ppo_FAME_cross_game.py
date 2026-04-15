@@ -452,7 +452,7 @@ if __name__ == "__main__":
 
                 if args.use_ttest == 1 and len(avereward_fast) >= 2 and len(avereward_meta) >= 2:
                     _, p_value = stats.ttest_ind(avereward_meta, avereward_fast, alternative='greater', equal_var=False)
-                    META_WARMUP = 1 if p_value < 0.05 else 0
+                    META_WARMUP = 1 if p_value.any() < 0.05 else 0
                 else:
                     META_WARMUP = 1 if Avereward_meta > Avereward_fast else 0
 
