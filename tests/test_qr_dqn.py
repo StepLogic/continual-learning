@@ -5,6 +5,7 @@ import numpy as np
 from qr_dqn.configs import QRDQNConfig
 from qr_dqn.network import QuantileNetwork
 from qr_dqn.atari_wrapper import make_atari_env
+from qr_dqn.train import get_epsilon
 
 
 def test_config_defaults():
@@ -207,3 +208,11 @@ def test_make_atari_env_step():
     assert isinstance(reward, (int, float))
     assert isinstance(terminated, bool)
     env.close()
+
+
+def test_get_epsilon_schedule():
+    config = QRDQNConfig(epsilon_start=1.0, epsilon_end=0.01, epsilon_decay_steps=1000)
+    assert get_epsilon(0, config) == 1.0
+    assert get_epsilon(1000, config) == 0.01
+    assert 0.01 < get_epsilon(500, config) < 1.0
+    assert get_epsilon(2000, config) == 0.01
