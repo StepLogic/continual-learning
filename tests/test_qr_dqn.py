@@ -57,6 +57,7 @@ def test_network_output_finite(rng):
 
 
 from qr_dqn.replay import ReplayBuffer
+from qr_dqn.losses import quantile_huber_loss
 
 
 def test_replay_buffer_init():
@@ -93,3 +94,39 @@ def test_replay_buffer_sample(rng):
     assert batch["rewards"].shape == (8,)
     assert batch["next_obs"].shape == (8, 84, 84, 4)
     assert batch["dones"].shape == (8,)
+
+
+def test_quantile_huber_loss_shape():
+    batch_size = 8
+    num_quantiles = 64
+    num_actions = 4
+    current_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
+    target_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
+    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
+    loss = quantile_huber_loss(current_quantiles, target_quantiles, actions, taus, kappa=1.0)
+    assert loss.shape == ()
+    assert jnp.isfinite(loss)
+
+
+def test_quantile_huber_loss_zero_when_equal():
+    batch_size = 4
+    num_quantiles = 32
+    num_actions = 2
+    quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
+    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
+    loss = quantile_huber_loss(quantiles, quantiles, actions, taus, kappa=1.0)
+    assert loss == 0.0
+
+
+def test_quantile_huber_loss_positive_when_different():
+    batch_size = 4
+    num_quantiles = 32
+    num_actions = 2
+    current = jnp.zeros((batch_size, num_actions, num_quantiles))
+    target = jnp.ones((batch_size, num_actions, num_quantiles))
+    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
+    loss = quantile_huber_loss(current, target, actions, taus, kappa=1.0)
+    assert loss > 0.0
