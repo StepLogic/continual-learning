@@ -216,3 +216,38 @@ def test_get_epsilon_schedule():
     assert get_epsilon(1000, config) == 0.01
     assert 0.01 < get_epsilon(500, config) < 1.0
     assert get_epsilon(2000, config) == 0.01
+
+
+class TestFAMEHooks:
+    def test_distill_then_get_quantiles(self):
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        rng1 = jax.random.PRNGKey(0)
+        rng2 = jax.random.PRNGKey(1)
+        fast = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng1)
+        meta = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng2)
+        obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+        q_before = fast.get_quantiles(obs)
+        fast.distill_from(meta)
+        q_after = fast.get_quantiles(obs)
+        assert not jnp.allclose(q_before, q_after)
+
+    def test_reset_params_changes_output(self):
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        rng = jax.random.PRNGKey(0)
+        agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+        obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+        q_before = agent.get_quantiles(obs)
+        agent.reset_params(jax.random.PRNGKey(99))
+        q_after = agent.get_quantiles(obs)
+        assert not jnp.allclose(q_before, q_after)
+
+    def test_copy_params_independent(self):
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        rng = jax.random.PRNGKey(0)
+        agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+        copied_params = agent.copy_params()
+        agent.reset_params(jax.random.PRNGKey(77))
+        obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+        q_orig = agent.network.apply(copied_params, obs[jnp.newaxis].astype(jnp.float32))
+        q_new = agent.get_quantiles(obs)
+        assert not jnp.allclose(q_orig.squeeze(0), q_new)
