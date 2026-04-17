@@ -130,3 +130,60 @@ def test_quantile_huber_loss_positive_when_different():
     taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
     loss = quantile_huber_loss(current, target, actions, taus, kappa=1.0)
     assert loss > 0.0
+
+
+from qr_dqn.agent import QRDQNAgent
+
+
+@pytest.fixture
+def agent(rng):
+    config = QRDQNConfig(num_quantiles=32, replay_capacity=500)
+    return QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=rng)
+
+
+def test_agent_init(agent):
+    assert agent.config.num_quantiles == 32
+
+
+def test_agent_act_greedy(agent):
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    action = agent.act(obs, epsilon=0.0)
+    assert 0 <= action < 6
+
+
+def test_agent_act_explore(agent):
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    actions = [agent.act(obs, epsilon=1.0) for _ in range(20)]
+    assert len(set(actions)) > 1
+
+
+def test_agent_get_quantiles(agent):
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    quantiles = agent.get_quantiles(obs)
+    assert quantiles.shape == (6, 32)
+
+
+def test_agent_copy_params(agent):
+    copied = agent.copy_params()
+    assert copied is not agent.params
+
+
+def test_agent_distill_from(rng):
+    config = QRDQNConfig(num_quantiles=32, replay_capacity=500)
+    agent1 = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=rng)
+    key2 = jax.random.PRNGKey(99)
+    agent2 = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=key2)
+    agent1.distill_from(agent2)
+    assert jax.tree_util.tree_all(
+        jax.tree_util.tree_map(lambda a, b: jnp.allclose(a, b), agent1.params, agent2.params)
+    )
+
+
+def test_agent_train_step(agent):
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for i in range(64):
+        agent.buffer_add(obs, i % 6, 1.0, obs, False)
+    rng_key = jax.random.PRNGKey(0)
+    metrics = agent.train_step(rng_key)
+    assert "loss" in metrics
+    assert jnp.isfinite(metrics["loss"])
