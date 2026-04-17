@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from qr_dqn.configs import QRDQNConfig
 from qr_dqn.network import QuantileNetwork
+from qr_dqn.atari_wrapper import make_atari_env
 
 
 def test_config_defaults():
@@ -187,3 +188,22 @@ def test_agent_train_step(agent):
     metrics = agent.train_step(rng_key)
     assert "loss" in metrics
     assert jnp.isfinite(metrics["loss"])
+
+
+def test_make_atari_env_obs_shape():
+    env = make_atari_env("PongNoFrameskip-v4")
+    obs, _ = env.reset()
+    assert obs.shape == (84, 84, 4)
+    assert obs.dtype == np.uint8
+    env.close()
+
+
+def test_make_atari_env_step():
+    env = make_atari_env("PongNoFrameskip-v4")
+    obs, _ = env.reset()
+    action = env.action_space.sample()
+    next_obs, reward, terminated, truncated, info = env.step(action)
+    assert next_obs.shape == (84, 84, 4)
+    assert isinstance(reward, (int, float))
+    assert isinstance(terminated, bool)
+    env.close()
