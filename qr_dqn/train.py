@@ -6,6 +6,7 @@ import numpy as np
 from qr_dqn.configs import QRDQNConfig
 from qr_dqn.agent import QRDQNAgent
 from qr_dqn.atari_wrapper import make_atari_env
+from qr_dqn.replay import NStepBuffer
 
 logger = logging.getLogger("continual_rl")
 
@@ -39,6 +40,8 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
 
     agent = QRDQNAgent(config, num_actions=num_actions, obs_shape=obs_shape, rng=agent_rng)
 
+    nstep_buffer = NStepBuffer(n=config.n_step, gamma=config.gamma) if config.n_step > 1 else None
+
     metrics = {"losses": [], "episode_returns": [], "eval_returns": []}
     episode_return = 0.0
     episode_count = 0
@@ -49,11 +52,24 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
         epsilon = get_epsilon(frame, config)
         action = agent.act(obs, epsilon=epsilon)
         next_obs, reward, terminated, truncated, info = env.step(action)
-        agent.buffer_add(obs, action, reward, next_obs, terminated)
+
+        # Store terminated (not truncated) for correct bootstrapping
+        if nstep_buffer is not None:
+            nstep_result = nstep_buffer.push(obs, action, reward, next_obs, terminated)
+            if nstep_result is not None:
+                obs_n, action_n, reward_n, next_obs_n, term_n = nstep_result
+                agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+        else:
+            agent.buffer_add(obs, action, reward, next_obs, terminated)
+
         episode_return += reward
         obs = next_obs
 
         if terminated or truncated:
+            if nstep_buffer is not None:
+                for obs_n, action_n, reward_n, next_obs_n, term_n in nstep_buffer.flush():
+                    agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+
             metrics["episode_returns"].append(episode_return)
             max_return = max(max_return, episode_return)
             logger.info(
