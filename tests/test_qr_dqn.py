@@ -255,12 +255,10 @@ def test_nstep_buffer_flush():
 def test_quantile_huber_loss_shape():
     batch_size = 8
     num_quantiles = 32
-    num_actions = 4
-    current_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
-    target_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
-    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    current_quantiles = jnp.ones((batch_size, num_quantiles))
+    target_quantiles = jnp.ones((batch_size, num_quantiles))
     taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
-    loss = quantile_huber_loss(current_quantiles, target_quantiles, actions, taus, kappa=1.0)
+    loss = quantile_huber_loss(current_quantiles, target_quantiles, taus, kappa=1.0)
     assert loss.shape == ()
     assert jnp.isfinite(loss)
 
@@ -268,23 +266,19 @@ def test_quantile_huber_loss_shape():
 def test_quantile_huber_loss_zero_when_equal():
     batch_size = 4
     num_quantiles = 32
-    num_actions = 2
-    quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
-    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    quantiles = jnp.ones((batch_size, num_quantiles))
     taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
-    loss = quantile_huber_loss(quantiles, quantiles, actions, taus, kappa=1.0)
+    loss = quantile_huber_loss(quantiles, quantiles, taus, kappa=1.0)
     assert loss == 0.0
 
 
 def test_quantile_huber_loss_positive_when_different():
     batch_size = 4
     num_quantiles = 32
-    num_actions = 2
-    current = jnp.zeros((batch_size, num_actions, num_quantiles))
-    target = jnp.ones((batch_size, num_actions, num_quantiles))
-    actions = jnp.zeros(batch_size, dtype=jnp.int32)
+    current = jnp.zeros((batch_size, num_quantiles))
+    target = jnp.ones((batch_size, num_quantiles))
     taus = (2 * jnp.arange(num_quantiles) + 1) / (2 * num_quantiles)
-    loss = quantile_huber_loss(current, target, actions, taus, kappa=1.0)
+    loss = quantile_huber_loss(current, target, taus, kappa=1.0)
     assert loss > 0.0
 
 
