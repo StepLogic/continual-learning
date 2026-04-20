@@ -53,7 +53,7 @@ def rng():
 def test_network_forward_shape(rng):
     num_actions = 6
     num_quantiles = 32
-    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles)
+    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles, dueling=False)
     dummy_obs = jnp.ones((4, 84, 84, 4))
     params = net.init(rng, dummy_obs)
     output = net.apply(params, dummy_obs)
@@ -63,7 +63,7 @@ def test_network_forward_shape(rng):
 def test_network_single_obs(rng):
     num_actions = 6
     num_quantiles = 32
-    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles)
+    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles, dueling=False)
     dummy_obs = jnp.ones((1, 84, 84, 4))
     params = net.init(rng, dummy_obs)
     output = net.apply(params, dummy_obs)
@@ -73,11 +73,54 @@ def test_network_single_obs(rng):
 def test_network_output_finite(rng):
     num_actions = 4
     num_quantiles = 32
-    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles)
+    net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles, dueling=False)
     dummy_obs = jnp.ones((2, 84, 84, 4))
     params = net.init(rng, dummy_obs)
     output = net.apply(params, dummy_obs)
     assert jnp.all(jnp.isfinite(output))
+
+
+def test_network_dueling_shape(rng):
+    num_actions = 6
+    num_quantiles = 32
+    net = QuantileNetwork(
+        num_actions=num_actions,
+        num_quantiles=num_quantiles,
+        dueling=True,
+    )
+    dummy_obs = jnp.ones((4, 84, 84, 4))
+    params = net.init(rng, dummy_obs)
+    output = net.apply(params, dummy_obs)
+    assert output.shape == (4, num_actions, num_quantiles)
+
+
+def test_network_dueling_output_finite(rng):
+    num_actions = 4
+    num_quantiles = 8
+    net = QuantileNetwork(
+        num_actions=num_actions,
+        num_quantiles=num_quantiles,
+        dueling=True,
+    )
+    dummy_obs = jnp.ones((2, 84, 84, 4))
+    params = net.init(rng, dummy_obs)
+    output = net.apply(params, dummy_obs)
+    assert jnp.all(jnp.isfinite(output))
+
+
+def test_network_nondueling_backward_compat(rng):
+    """dueling=False should produce same shape as before."""
+    num_actions = 6
+    num_quantiles = 32
+    net = QuantileNetwork(
+        num_actions=num_actions,
+        num_quantiles=num_quantiles,
+        dueling=False,
+    )
+    dummy_obs = jnp.ones((2, 84, 84, 4))
+    params = net.init(rng, dummy_obs)
+    output = net.apply(params, dummy_obs)
+    assert output.shape == (2, num_actions, num_quantiles)
 
 
 from qr_dqn.replay import ReplayBuffer
