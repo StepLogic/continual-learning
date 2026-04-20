@@ -20,9 +20,10 @@ def get_epsilon(frame: int, config: QRDQNConfig) -> float:
 def _log_metrics(frame, avg_loss, epsilon, episode_count, episode_returns, max_return):
     recent = episode_returns[-10:] if episode_returns else [0.0]
     mean_ret = sum(recent) / len(recent)
+    max_ret_str = f"{max_return:.1f}" if max_return != float("-inf") else "--"
     print(
         f"[Frame {frame:>7d}] loss={avg_loss:.3f} | eps={epsilon:.3f} "
-        f"| episodes={episode_count} | mean_ret(10)={mean_ret:.1f} | max_ret={max_return:.1f}"
+        f"| episodes={episode_count} | mean_ret(10)={mean_ret:.1f} | max_ret={max_ret_str}"
     )
 
 

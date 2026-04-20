@@ -269,3 +269,16 @@ def test_log_metrics_output(capsys):
     assert "episodes=42" in captured.out
     assert "mean_ret(10)=2.0" in captured.out
     assert "max_ret=3.0" in captured.out
+
+
+def test_log_metrics_no_episodes(capsys):
+    _log_metrics(
+        frame=10000,
+        avg_loss=0.5,
+        epsilon=0.94,
+        episode_count=0,
+        episode_returns=[],
+        max_return=float("-inf"),
+    )
+    captured = capsys.readouterr()
+    assert "max_ret=--" in captured.out
