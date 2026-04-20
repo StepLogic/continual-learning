@@ -49,12 +49,11 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
         epsilon = get_epsilon(frame, config)
         action = agent.act(obs, epsilon=epsilon)
         next_obs, reward, terminated, truncated, info = env.step(action)
-        done = terminated or truncated
-        agent.buffer_add(obs, action, reward, next_obs, done)
+        agent.buffer_add(obs, action, reward, next_obs, terminated)
         episode_return += reward
         obs = next_obs
 
-        if done:
+        if terminated or truncated:
             metrics["episode_returns"].append(episode_return)
             max_return = max(max_return, episode_return)
             logger.info(

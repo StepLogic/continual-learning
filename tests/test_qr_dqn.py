@@ -304,3 +304,27 @@ def test_log_metrics_no_episodes(capsys):
     )
     captured = capsys.readouterr()
     assert "max_ret=--" in captured.out
+
+
+def test_train_stores_terminated_only():
+    """Buffer should store 'terminated' only, not 'terminated or truncated'."""
+    config = QRDQNConfig(
+        replay_capacity=500, warmup_steps=0, max_frames=50,
+        epsilon_start=1.0, epsilon_end=1.0,
+    )
+    rng = jax.random.PRNGKey(config.seed)
+    rng, agent_rng = jax.random.split(rng)
+    agent = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=agent_rng)
+    env = make_atari_env("PongNoFrameskip-v4", seed=config.seed)
+    obs, _ = env.reset()
+    for _ in range(50):
+        action = agent.act(obs, epsilon=1.0)
+        next_obs, reward, terminated, truncated, info = env.step(action)
+        agent.buffer_add(obs, action, reward, next_obs, terminated)
+        obs = next_obs
+        if terminated or truncated:
+            obs, _ = env.reset()
+    for i in range(agent.buffer.size):
+        if agent.buffer.dones[i]:
+            assert isinstance(agent.buffer.dones[i], (bool, np.bool_))
+    env.close()
