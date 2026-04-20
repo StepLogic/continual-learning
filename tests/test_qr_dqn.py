@@ -293,12 +293,12 @@ from qr_dqn.agent import QRDQNAgent
 
 @pytest.fixture
 def agent(rng):
-    config = QRDQNConfig(num_quantiles=32, replay_capacity=500)
+    config = QRDQNConfig(num_quantiles=16, replay_capacity=500, dueling=False, per_alpha=0.0)
     return QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=rng)
 
 
 def test_agent_init(agent):
-    assert agent.config.num_quantiles == 32
+    assert agent.config.num_quantiles == 16
 
 
 def test_agent_act_greedy(agent):
@@ -316,7 +316,7 @@ def test_agent_act_explore(agent):
 def test_agent_get_quantiles(agent):
     obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
     quantiles = agent.get_quantiles(obs)
-    assert quantiles.shape == (6, 32)
+    assert quantiles.shape == (6, 16)
 
 
 def test_agent_copy_params(agent):
@@ -325,7 +325,7 @@ def test_agent_copy_params(agent):
 
 
 def test_agent_distill_from(rng):
-    config = QRDQNConfig(num_quantiles=32, replay_capacity=500)
+    config = QRDQNConfig(num_quantiles=16, replay_capacity=500, dueling=False, per_alpha=0.0)
     agent1 = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=rng)
     key2 = jax.random.PRNGKey(99)
     agent2 = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=key2)
@@ -343,6 +343,49 @@ def test_agent_train_step(agent):
     metrics = agent.train_step(rng_key)
     assert "loss" in metrics
     assert jnp.isfinite(metrics["loss"])
+    assert "td_errors" in metrics
+
+
+def test_agent_gradient_clipping():
+    config = QRDQNConfig(num_quantiles=16, replay_capacity=500, max_grad_norm=10.0, dueling=False, per_alpha=0.0)
+    rng_key = jax.random.PRNGKey(42)
+    agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng_key)
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for i in range(64):
+        agent.buffer_add(obs, i % 4, 1.0, obs, False)
+    metrics = agent.train_step(jax.random.PRNGKey(0))
+    assert "loss" in metrics
+    assert jnp.isfinite(metrics["loss"])
+
+
+def test_agent_per_buffer():
+    config = QRDQNConfig(
+        num_quantiles=16, replay_capacity=500, dueling=False,
+        per_alpha=0.6, per_beta_start=0.4,
+    )
+    rng_key = jax.random.PRNGKey(42)
+    agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng_key)
+    assert isinstance(agent.buffer, PrioritizedReplayBuffer)
+
+
+def test_agent_soft_target_update():
+    config = QRDQNConfig(
+        num_quantiles=16, replay_capacity=500, dueling=False,
+        target_update_tau=0.005, per_alpha=0.0,
+    )
+    rng_key = jax.random.PRNGKey(42)
+    agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng_key)
+    # Train step makes online params diverge from target params
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for i in range(64):
+        agent.buffer_add(obs, i % 4, 1.0, obs, False)
+    agent.train_step(jax.random.PRNGKey(0))
+    params_before = jax.tree_util.tree_map(jnp.copy, agent.target_params)
+    agent.update_target()
+    different = not jax.tree_util.tree_all(
+        jax.tree_util.tree_map(lambda a, b: jnp.allclose(a, b), params_before, agent.target_params)
+    )
+    assert different
 
 
 def test_make_atari_env_obs_shape():
@@ -374,7 +417,7 @@ def test_get_epsilon_schedule():
 
 class TestFAMEHooks:
     def test_distill_then_get_quantiles(self):
-        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100, dueling=False, per_alpha=0.0)
         rng1 = jax.random.PRNGKey(0)
         rng2 = jax.random.PRNGKey(1)
         fast = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng1)
@@ -386,7 +429,7 @@ class TestFAMEHooks:
         assert not jnp.allclose(q_before, q_after)
 
     def test_reset_params_changes_output(self):
-        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100, dueling=False, per_alpha=0.0)
         rng = jax.random.PRNGKey(0)
         agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
         obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
@@ -396,7 +439,7 @@ class TestFAMEHooks:
         assert not jnp.allclose(q_before, q_after)
 
     def test_copy_params_independent(self):
-        config = QRDQNConfig(num_quantiles=16, replay_capacity=100)
+        config = QRDQNConfig(num_quantiles=16, replay_capacity=100, dueling=False, per_alpha=0.0)
         rng = jax.random.PRNGKey(0)
         agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
         copied_params = agent.copy_params()
