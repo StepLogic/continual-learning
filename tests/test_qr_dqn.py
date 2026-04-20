@@ -5,16 +5,16 @@ import numpy as np
 from qr_dqn.configs import QRDQNConfig
 from qr_dqn.network import QuantileNetwork
 from qr_dqn.atari_wrapper import make_atari_env
-from qr_dqn.train import get_epsilon
+from qr_dqn.train import get_epsilon, _log_metrics
 
 
 def test_config_defaults():
     config = QRDQNConfig()
-    assert config.num_quantiles == 64
+    assert config.num_quantiles == 32
     assert config.kappa == 1.0
     assert config.learning_rate == 1e-4
     assert config.gamma == 0.99
-    assert config.replay_capacity == 100_000
+    assert config.replay_capacity == 50_000
 
 
 def test_config_override():
@@ -30,7 +30,7 @@ def rng():
 
 def test_network_forward_shape(rng):
     num_actions = 6
-    num_quantiles = 64
+    num_quantiles = 32
     net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles)
     dummy_obs = jnp.ones((4, 84, 84, 4))
     params = net.init(rng, dummy_obs)
@@ -50,7 +50,7 @@ def test_network_single_obs(rng):
 
 def test_network_output_finite(rng):
     num_actions = 4
-    num_quantiles = 64
+    num_quantiles = 32
     net = QuantileNetwork(num_actions=num_actions, num_quantiles=num_quantiles)
     dummy_obs = jnp.ones((2, 84, 84, 4))
     params = net.init(rng, dummy_obs)
@@ -100,7 +100,7 @@ def test_replay_buffer_sample(rng):
 
 def test_quantile_huber_loss_shape():
     batch_size = 8
-    num_quantiles = 64
+    num_quantiles = 32
     num_actions = 4
     current_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
     target_quantiles = jnp.ones((batch_size, num_actions, num_quantiles))
@@ -251,3 +251,21 @@ class TestFAMEHooks:
         q_orig = agent.network.apply(copied_params, obs[jnp.newaxis].astype(jnp.float32))
         q_new = agent.get_quantiles(obs)
         assert not jnp.allclose(q_orig.squeeze(0), q_new)
+
+
+def test_log_metrics_output(capsys):
+    _log_metrics(
+        frame=10000,
+        avg_loss=0.523,
+        epsilon=0.94,
+        episode_count=42,
+        episode_returns=[1.0, 2.0, 3.0],
+        max_return=3.0,
+    )
+    captured = capsys.readouterr()
+    assert "[Frame   10000]" in captured.out
+    assert "loss=0.523" in captured.out
+    assert "eps=0.940" in captured.out
+    assert "episodes=42" in captured.out
+    assert "mean_ret(10)=2.0" in captured.out
+    assert "max_ret=3.0" in captured.out
