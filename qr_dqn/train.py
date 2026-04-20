@@ -42,6 +42,7 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
     episode_return = 0.0
     episode_count = 0
     max_return = float("-inf")
+    losses_since_log = []
 
     for frame in range(max_frames):
         epsilon = get_epsilon(frame, config)
@@ -67,10 +68,17 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
             rng, train_rng = jax.random.split(rng)
             train_metrics = agent.train_step(train_rng)
             metrics["losses"].append(train_metrics["loss"])
+            losses_since_log.append(train_metrics["loss"])
+
+        if config.log_interval and frame > 0 and frame % config.log_interval == 0:
+            avg_loss = sum(losses_since_log) / len(losses_since_log) if losses_since_log else 0.0
+            _log_metrics(frame, avg_loss, epsilon, episode_count, metrics["episode_returns"], max_return)
+            losses_since_log = []
 
         if config.eval_interval and frame > 0 and frame % config.eval_interval == 0:
             eval_return = evaluate(agent, env, config.eval_episodes, config.seed + 1000)
             metrics["eval_returns"].append(eval_return)
+            print(f"Eval @ {frame}: mean_return={eval_return:.1f} over {config.eval_episodes} episodes")
 
     return agent, metrics
 
