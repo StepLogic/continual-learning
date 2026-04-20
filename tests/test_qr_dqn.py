@@ -10,11 +10,33 @@ from qr_dqn.train import get_epsilon, _log_metrics
 
 def test_config_defaults():
     config = QRDQNConfig()
-    assert config.num_quantiles == 32
+    assert config.num_quantiles == 64
     assert config.kappa == 1.0
     assert config.learning_rate == 1e-4
     assert config.gamma == 0.99
     assert config.replay_capacity == 50_000
+
+
+def test_config_new_fields():
+    config = QRDQNConfig()
+    assert config.dueling is True
+    assert config.n_step == 3
+    assert config.max_grad_norm == 10.0
+    assert config.per_alpha == 0.6
+    assert config.per_beta_start == 0.4
+    assert config.per_beta_frames == 10_000_000
+    assert config.per_epsilon == 1e-6
+    assert config.target_update_tau == 1.0
+
+
+def test_config_updated_defaults():
+    config = QRDQNConfig()
+    assert config.num_quantiles == 64
+    assert config.replay_capacity == 50_000
+    assert config.epsilon_decay_steps == 250_000
+    assert config.warmup_steps == 20_000
+    assert config.max_frames == 10_000_000
+    assert config.target_update_freq == 10_000
 
 
 def test_config_override():
