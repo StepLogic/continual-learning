@@ -124,6 +124,8 @@ def test_network_nondueling_backward_compat(rng):
 
 
 from qr_dqn.replay import ReplayBuffer
+from qr_dqn.replay import PrioritizedReplayBuffer
+from qr_dqn.replay import NStepBuffer
 from qr_dqn.losses import quantile_huber_loss
 
 
@@ -161,6 +163,93 @@ def test_replay_buffer_sample(rng):
     assert batch["rewards"].shape == (8,)
     assert batch["next_obs"].shape == (8, 84, 84, 4)
     assert batch["dones"].shape == (8,)
+
+
+def test_per_buffer_init():
+    buf = PrioritizedReplayBuffer(capacity=100, obs_shape=(84, 84, 4))
+    assert buf.size == 0
+
+
+def test_per_buffer_add():
+    buf = PrioritizedReplayBuffer(capacity=100, obs_shape=(84, 84, 4))
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    next_obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    buf.add(obs, 1, 1.0, next_obs, False)
+    assert buf.size == 1
+
+
+def test_per_buffer_sample_has_weights(rng):
+    buf = PrioritizedReplayBuffer(capacity=100, obs_shape=(84, 84, 4))
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    next_obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for i in range(50):
+        buf.add(obs, i % 4, float(i), next_obs, False)
+    batch = buf.sample(rng, batch_size=8, beta=1.0)
+    assert "weights" in batch
+    assert "indices" in batch
+    assert batch["weights"].shape == (8,)
+    assert batch["indices"].shape == (8,)
+    assert batch["obs"].shape == (8, 84, 84, 4)
+
+
+def test_per_buffer_update_priorities():
+    buf = PrioritizedReplayBuffer(capacity=100, obs_shape=(84, 84, 4))
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    next_obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for i in range(10):
+        buf.add(obs, i % 4, float(i), next_obs, False)
+    indices = np.array([0, 1, 2])
+    priorities = np.array([5.0, 3.0, 1.0])
+    buf.update_priorities(indices, priorities)
+    assert buf.priorities[0] == pytest.approx(5.0 + 1e-6)
+    assert buf.priorities[1] == pytest.approx(3.0 + 1e-6)
+    assert buf.priorities[2] == pytest.approx(1.0 + 1e-6)
+
+
+def test_nstep_buffer_returns_none_when_not_full():
+    buf = NStepBuffer(n=3, gamma=0.99)
+    obs = np.zeros((84, 84, 4), dtype=np.uint8)
+    result = buf.push(obs, 0, 1.0, obs, False)
+    assert result is None
+
+
+def test_nstep_buffer_returns_transition_when_full():
+    buf = NStepBuffer(n=3, gamma=0.99)
+    obs = np.zeros((84, 84, 4), dtype=np.uint8)
+    obs1 = np.ones((84, 84, 4), dtype=np.uint8)
+    buf.push(obs, 0, 1.0, obs1, False)
+    buf.push(obs1, 1, 2.0, obs, False)
+    result = buf.push(obs, 2, 3.0, obs1, False)
+    assert result is not None
+    obs_n, action_n, reward_n, next_obs_n, terminated_n = result
+    assert action_n == 0
+    expected = 1.0 + 0.99 * 2.0 + 0.99**2 * 3.0
+    assert reward_n == pytest.approx(expected, rel=1e-4)
+    assert terminated_n is False
+
+
+def test_nstep_buffer_early_termination():
+    buf = NStepBuffer(n=3, gamma=0.99)
+    obs = np.zeros((84, 84, 4), dtype=np.uint8)
+    obs1 = np.ones((84, 84, 4), dtype=np.uint8)
+    buf.push(obs, 0, 1.0, obs1, False)
+    buf.push(obs1, 1, 2.0, obs, True)  # terminated at step 2
+    result = buf.push(obs, 2, 3.0, obs1, False)
+    assert result is not None
+    _, _, reward_n, _, terminated_n = result
+    expected = 1.0 + 0.99 * 2.0
+    assert reward_n == pytest.approx(expected, rel=1e-4)
+    assert terminated_n is True
+
+
+def test_nstep_buffer_flush():
+    buf = NStepBuffer(n=3, gamma=0.99)
+    obs = np.zeros((84, 84, 4), dtype=np.uint8)
+    obs1 = np.ones((84, 84, 4), dtype=np.uint8)
+    buf.push(obs, 0, 1.0, obs1, False)
+    buf.push(obs1, 1, 2.0, obs, False)
+    results = buf.flush()
+    assert len(results) == 2
 
 
 def test_quantile_huber_loss_shape():
