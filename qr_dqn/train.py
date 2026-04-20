@@ -1,3 +1,5 @@
+import logging
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -5,12 +7,23 @@ from qr_dqn.configs import QRDQNConfig
 from qr_dqn.agent import QRDQNAgent
 from qr_dqn.atari_wrapper import make_atari_env
 
+logger = logging.getLogger("continual_rl")
+
 
 def get_epsilon(frame: int, config: QRDQNConfig) -> float:
     if frame >= config.epsilon_decay_steps:
         return config.epsilon_end
     slope = (config.epsilon_end - config.epsilon_start) / config.epsilon_decay_steps
     return config.epsilon_start + slope * frame
+
+
+def _log_metrics(frame, avg_loss, epsilon, episode_count, episode_returns, max_return):
+    recent = episode_returns[-10:] if episode_returns else [0.0]
+    mean_ret = sum(recent) / len(recent)
+    print(
+        f"[Frame {frame:>7d}] loss={avg_loss:.3f} | eps={epsilon:.3f} "
+        f"| episodes={episode_count} | mean_ret(10)={mean_ret:.1f} | max_ret={max_return:.1f}"
+    )
 
 
 def train(config: QRDQNConfig, max_frames_override: int = None):
@@ -28,6 +41,7 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
     metrics = {"losses": [], "episode_returns": [], "eval_returns": []}
     episode_return = 0.0
     episode_count = 0
+    max_return = float("-inf")
 
     for frame in range(max_frames):
         epsilon = get_epsilon(frame, config)
@@ -40,6 +54,11 @@ def train(config: QRDQNConfig, max_frames_override: int = None):
 
         if done:
             metrics["episode_returns"].append(episode_return)
+            max_return = max(max_return, episode_return)
+            logger.info(
+                "Episode %d | Return: %.1f | Max Return: %.1f | Frame: %d",
+                episode_count, episode_return, max_return, frame,
+            )
             episode_return = 0.0
             episode_count += 1
             obs, _ = env.reset()
