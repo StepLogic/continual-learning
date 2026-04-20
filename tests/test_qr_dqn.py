@@ -497,3 +497,81 @@ def test_train_stores_terminated_only():
         if agent.buffer.dones[i]:
             assert isinstance(agent.buffer.dones[i], (bool, np.bool_))
     env.close()
+
+
+def test_full_integration_all_features_enabled():
+    """Smoke test: all features enabled (dueling, PER, n-step, grad clip)."""
+    config = QRDQNConfig(
+        num_quantiles=16,
+        replay_capacity=500,
+        warmup_steps=0,
+        max_frames=100,
+        dueling=True,
+        n_step=3,
+        max_grad_norm=10.0,
+        per_alpha=0.6,
+        per_beta_start=0.4,
+        per_beta_frames=100,
+        target_update_tau=0.005,
+    )
+    rng = jax.random.PRNGKey(config.seed)
+    rng, agent_rng = jax.random.split(rng)
+    agent = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=agent_rng)
+
+    assert isinstance(agent.buffer, PrioritizedReplayBuffer)
+
+    nstep_buffer = NStepBuffer(n=config.n_step, gamma=config.gamma)
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+
+    for frame in range(100):
+        action = agent.act(obs, epsilon=0.5)
+        next_obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+        reward = float(np.random.randn())
+        terminated = frame == 99
+
+        nstep_result = nstep_buffer.push(obs, action, reward, next_obs, terminated)
+        if nstep_result is not None:
+            obs_n, action_n, reward_n, next_obs_n, term_n = nstep_result
+            agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+
+        if terminated:
+            for obs_n, action_n, reward_n, next_obs_n, term_n in nstep_buffer.flush():
+                agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+
+        obs = next_obs
+
+        if frame >= 10 and agent.buffer.size >= config.batch_size:
+            train_rng = jax.random.PRNGKey(frame)
+            metrics = agent.train_step(train_rng)
+            assert jnp.isfinite(metrics["loss"])
+            assert "td_errors" in metrics
+
+
+def test_full_integration_uniform_replay():
+    """Smoke test: uniform replay, no PER."""
+    config = QRDQNConfig(
+        num_quantiles=16,
+        replay_capacity=500,
+        warmup_steps=0,
+        max_frames=50,
+        dueling=True,
+        n_step=1,
+        max_grad_norm=10.0,
+        per_alpha=0.0,
+    )
+    rng = jax.random.PRNGKey(config.seed)
+    rng, agent_rng = jax.random.split(rng)
+    agent = QRDQNAgent(config, num_actions=6, obs_shape=(84, 84, 4), rng=agent_rng)
+
+    assert isinstance(agent.buffer, ReplayBuffer)
+
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    for frame in range(50):
+        action = agent.act(obs, epsilon=1.0)
+        next_obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+        agent.buffer_add(obs, action, 1.0, next_obs, False)
+        obs = next_obs
+
+    rng_key = jax.random.PRNGKey(0)
+    metrics = agent.train_step(rng_key)
+    assert jnp.isfinite(metrics["loss"])
