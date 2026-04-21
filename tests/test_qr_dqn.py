@@ -475,6 +475,16 @@ def test_log_metrics_no_episodes(capsys):
     assert "max_ret=--" in captured.out
 
 
+def test_config_steps_per_task():
+    config = QRDQNConfig(steps_per_task=100_000)
+    assert config.steps_per_task == 100_000
+
+
+def test_config_games():
+    config = QRDQNConfig(games=("Breakout", "Pong"))
+    assert config.games == ("Breakout", "Pong")
+
+
 def test_train_stores_terminated_only():
     """Buffer should store 'terminated' only, not 'terminated or truncated'."""
     config = QRDQNConfig(

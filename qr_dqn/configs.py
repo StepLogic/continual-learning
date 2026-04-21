@@ -10,7 +10,7 @@ class QRDQNConfig:
     epsilon_start: float = 1.0
     epsilon_end: float = 0.01
     epsilon_decay_steps: int = 250_000
-    batch_size: int = 32
+    batch_size: int = 8
     replay_capacity: int = 50_000
     warmup_steps: int = 20_000
     target_update_freq: int = 10_000
@@ -35,3 +35,6 @@ class QRDQNConfig:
     per_beta_start: float = 0.4
     per_beta_frames: int = 10_000_000
     per_epsilon: float = 1e-6
+    # Continual learning
+    steps_per_task: int = 500_000
+    games: tuple = ("Breakout", "SpaceInvaders", "Freeway")
