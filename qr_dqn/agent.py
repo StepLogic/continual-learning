@@ -85,6 +85,30 @@ class QRDQNAgent:
         self.target_params = jax.tree_util.tree_map(jnp.copy, other.target_params)
         self.opt_state = self.optimizer.init(self.params)
 
+    def save(self, path: str):
+        """Save agent checkpoint to disk."""
+        import pickle
+        checkpoint = {
+            "params": self.params,
+            "target_params": self.target_params,
+            "opt_state": self.opt_state,
+            "step_count": self.step_count,
+            "rng": self.rng,
+        }
+        with open(path, "wb") as f:
+            pickle.dump(checkpoint, f)
+
+    def load(self, path: str):
+        """Load agent checkpoint from disk."""
+        import pickle
+        with open(path, "rb") as f:
+            checkpoint = pickle.load(f)
+        self.params = checkpoint["params"]
+        self.target_params = checkpoint["target_params"]
+        self.opt_state = checkpoint["opt_state"]
+        self.step_count = checkpoint["step_count"]
+        self.rng = checkpoint["rng"]
+
     def update_target(self):
         tau = self.config.target_update_tau
         if tau >= 1.0:

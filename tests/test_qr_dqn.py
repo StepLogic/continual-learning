@@ -444,6 +444,43 @@ class TestFAMEHooks:
         assert not jnp.allclose(q_orig.squeeze(0), q_new)
 
 
+import tempfile
+import os
+
+
+def test_agent_save_load(rng):
+    config = QRDQNConfig(num_quantiles=16, replay_capacity=100, dueling=False, per_alpha=0.0)
+    agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+    obs = np.random.randint(0, 256, (84, 84, 4), dtype=np.uint8)
+    q_before = agent.get_quantiles(obs)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "agent.pkl")
+        agent.save(path)
+        assert os.path.exists(path)
+
+        # Create fresh agent and load
+        agent2 = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+        agent2.load(path)
+        q_after = agent2.get_quantiles(obs)
+
+    assert jnp.allclose(q_before, q_after)
+
+
+def test_agent_save_load_step_count(rng):
+    config = QRDQNConfig(num_quantiles=16, replay_capacity=100, dueling=False, per_alpha=0.0)
+    agent = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+    agent.step_count = 42
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "agent.pkl")
+        agent.save(path)
+
+        agent2 = QRDQNAgent(config, num_actions=4, obs_shape=(84, 84, 4), rng=rng)
+        agent2.load(path)
+        assert agent2.step_count == 42
+
+
 def test_log_metrics_output(capsys):
     _log_metrics(
         frame=10000,
