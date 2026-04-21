@@ -5,7 +5,7 @@ import numpy as np
 from qr_dqn.configs import QRDQNConfig
 from qr_dqn.network import QuantileNetwork
 from qr_dqn.atari_wrapper import make_atari_env
-from qr_dqn.train import get_epsilon, _log_metrics
+from qr_dqn.train import get_epsilon, _log_metrics, evaluate_on_game
 
 
 def test_config_defaults():
@@ -654,3 +654,36 @@ def test_full_integration_uniform_replay():
     rng_key = jax.random.PRNGKey(0)
     metrics = agent.train_step(rng_key)
     assert jnp.isfinite(metrics["loss"])
+
+
+def test_evaluate_on_game():
+    config = QRDQNConfig(
+        num_quantiles=8,
+        replay_capacity=200,
+        warmup_steps=32,
+        batch_size=8,
+        max_frames=200,
+        target_update_freq=50,
+        eval_interval=1000,
+        game="PongNoFrameskip-v4",
+    )
+    env = make_atari_env(config.game, seed=config.seed)
+    rng = jax.random.PRNGKey(config.seed)
+    rng, agent_rng = jax.random.split(rng)
+    num_actions = env.action_space.n
+    obs, _ = env.reset()
+    obs_shape = obs.shape
+    agent = QRDQNAgent(config, num_actions=num_actions, obs_shape=obs_shape, rng=agent_rng)
+
+    # Train briefly
+    for _ in range(100):
+        action = agent.act(obs, epsilon=1.0)
+        next_obs, reward, terminated, truncated, info = env.step(action)
+        agent.buffer_add(obs, action, reward, next_obs, terminated)
+        obs = next_obs
+        if terminated or truncated:
+            obs, _ = env.reset()
+
+    eval_return = evaluate_on_game(agent, "PongNoFrameskip-v4", num_episodes=1, seed=config.seed)
+    assert isinstance(eval_return, float)
+    env.close()

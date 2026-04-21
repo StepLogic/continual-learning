@@ -112,3 +112,127 @@ def evaluate(agent: QRDQNAgent, env, num_episodes: int = 10, seed: int = 0) -> f
             done = terminated or truncated
         returns.append(total_return)
     return float(np.mean(returns))
+
+
+def train_on_task(
+    agent: QRDQNAgent,
+    env,
+    config: QRDQNConfig,
+    steps_per_task: int,
+    evaluator=None,
+    metrics_tracker=None,
+    task_idx: int = 0,
+):
+    """
+    Train agent on a single task for a fixed number of steps.
+
+    Args:
+        agent: Pre-initialized QRDQNAgent (params persist across tasks).
+        env: Environment to train on.
+        config: QRDQNConfig.
+        steps_per_task: Number of frames to train for this task.
+        evaluator: Optional Evaluator for logging.
+        metrics_tracker: Optional ContinualMetrics for tracking.
+        task_idx: Index of current task.
+
+    Returns:
+        Updated agent, dict of metrics.
+    """
+    obs, _ = env.reset()
+    episode_return = 0.0
+    episode_count = 0
+    max_return = float("-inf")
+    losses_since_log = []
+    metrics = {"losses": [], "episode_returns": [], "eval_returns": []}
+
+    nstep_buffer = NStepBuffer(n=config.n_step, gamma=config.gamma) if config.n_step > 1 else None
+    rng = jax.random.PRNGKey(config.seed)
+
+    for frame in range(steps_per_task):
+        epsilon = get_epsilon(agent.step_count, config)
+        action = agent.act(obs, epsilon=epsilon)
+        next_obs, reward, terminated, truncated, info = env.step(action)
+
+        # Store terminated (not truncated) for correct bootstrapping
+        if nstep_buffer is not None:
+            nstep_result = nstep_buffer.push(obs, action, reward, next_obs, terminated)
+            if nstep_result is not None:
+                obs_n, action_n, reward_n, next_obs_n, term_n = nstep_result
+                agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+        else:
+            agent.buffer_add(obs, action, reward, next_obs, terminated)
+
+        episode_return += reward
+        obs = next_obs
+
+        if terminated or truncated:
+            if nstep_buffer is not None:
+                for obs_n, action_n, reward_n, next_obs_n, term_n in nstep_buffer.flush():
+                    agent.buffer_add(obs_n, action_n, reward_n, next_obs_n, term_n)
+
+            metrics["episode_returns"].append(episode_return)
+            max_return = max(max_return, episode_return)
+
+            if evaluator is not None:
+                task_name = info.get("task_name", getattr(env, "get_current_game", lambda: "unknown")())
+                task_switched = info.get("task_switched", False)
+                evaluator.log_episode(
+                    episode_return=episode_return,
+                    episode_length=frame,
+                    task_idx=task_idx,
+                    task_name=task_name,
+                    task_switched=task_switched,
+                )
+
+            if metrics_tracker is not None:
+                metrics_tracker.log_episode(episode_return, task_idx, evaluator.global_step if evaluator else frame)
+
+            episode_return = 0.0
+            episode_count += 1
+            obs, _ = env.reset()
+
+        if agent.step_count >= config.warmup_steps:
+            rng, train_rng = jax.random.split(rng)
+            train_metrics = agent.train_step(train_rng)
+            metrics["losses"].append(train_metrics["loss"])
+            losses_since_log.append(train_metrics["loss"])
+
+        if config.log_interval and frame > 0 and frame % config.log_interval == 0:
+            avg_loss = sum(losses_since_log) / len(losses_since_log) if losses_since_log else 0.0
+            _log_metrics(frame, avg_loss, epsilon, episode_count, metrics["episode_returns"], max_return)
+            losses_since_log = []
+
+        if config.eval_interval and frame > 0 and frame % config.eval_interval == 0:
+            eval_return = evaluate(agent, env, config.eval_episodes, config.seed + 1000)
+            metrics["eval_returns"].append(eval_return)
+            if evaluator is not None:
+                evaluator.log_evaluation(eval_return, 0)
+            print(f"Eval @ task {task_idx} frame {frame}: mean_return={eval_return:.1f}")
+
+        if evaluator is not None:
+            evaluator.step()
+
+    return agent, metrics
+
+
+def evaluate_on_game(agent: QRDQNAgent, game: str, num_episodes: int = 10, seed: int = 0) -> float:
+    """
+    Evaluate agent on a specific Atari game.
+
+    Creates a fresh environment for the game, runs evaluation,
+    and closes the environment.
+    """
+    env = make_atari_env(game, seed=seed)
+    returns = []
+    for ep in range(num_episodes):
+        obs, _ = env.reset(seed=seed + ep)
+        total_return = 0.0
+        done = False
+        while not done:
+            action = agent.act(obs, epsilon=0.001)
+            obs, reward, terminated, truncated, info = env.step(action)
+            total_return += reward
+            done = terminated or truncated
+        returns.append(total_return)
+    env.close()
+    return float(np.mean(returns))
