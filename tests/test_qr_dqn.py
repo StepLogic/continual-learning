@@ -718,3 +718,47 @@ def test_continual_runner_smoke():
         assert "task_results" in results
         assert len(results["task_results"]) == 2
         assert "continual_metrics" in results
+
+
+class TestContinualLearning:
+    def test_checkpoint_resume(self):
+        """Test that training can resume from a checkpoint."""
+        import tempfile
+        config = QRDQNConfig(
+            num_quantiles=8,
+            replay_capacity=200,
+            warmup_steps=20,
+            batch_size=8,
+            max_frames=200,
+            target_update_freq=50,
+            eval_interval=1000,
+            log_interval=0,
+            steps_per_task=200,
+            games=("PongNoFrameskip-v4",),
+        )
+        env = make_atari_env("PongNoFrameskip-v4", seed=42)
+        rng = jax.random.PRNGKey(42)
+        rng, agent_rng = jax.random.split(rng)
+        obs, _ = env.reset()
+        agent = QRDQNAgent(config, num_actions=env.action_space.n, obs_shape=obs.shape, rng=agent_rng)
+
+        # Train briefly
+        for _ in range(100):
+            action = agent.act(obs, epsilon=1.0)
+            next_obs, reward, terminated, truncated, info = env.step(action)
+            agent.buffer_add(obs, action, reward, next_obs, terminated)
+            obs = next_obs
+            if terminated or truncated:
+                obs, _ = env.reset()
+
+        step_count_before = agent.step_count
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "agent.pkl")
+            agent.save(path)
+
+            agent2 = QRDQNAgent(config, num_actions=env.action_space.n, obs_shape=obs.shape, rng=agent_rng)
+            agent2.load(path)
+            assert agent2.step_count == step_count_before
+
+        env.close()
