@@ -28,10 +28,11 @@ class ContinualAtariEnv:
         # Create first environment
         self.env = make_atari_env(self.games[0], seed=seed)
 
-    def reset(self) -> np.ndarray:
+    def reset(self, seed=None):
         """Reset current environment."""
-        obs, _ = self.env.reset(seed=self.seed + self.current_task_idx)
-        return obs
+        reset_seed = seed if seed is not None else self.seed + self.current_task_idx
+        obs, info = self.env.reset(seed=reset_seed)
+        return obs, info
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """

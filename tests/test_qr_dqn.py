@@ -534,7 +534,7 @@ def test_continual_env_init():
 
 def test_continual_env_step_counts():
     env = ContinualAtariEnv(games=["Breakout", "Pong"], steps_per_task=5, seed=0)
-    obs = env.reset()
+    obs, _ = env.reset()
     assert obs.shape == (84, 84, 4)
 
     for _ in range(4):
@@ -687,3 +687,34 @@ def test_evaluate_on_game():
     eval_return = evaluate_on_game(agent, "PongNoFrameskip-v4", num_episodes=1, seed=config.seed)
     assert isinstance(eval_return, float)
     env.close()
+
+
+def test_continual_runner_smoke():
+    """Smoke test: 2 games, 500 steps each."""
+    from experiments.run_qr_dqn_continual import run_continual_experiment
+
+    config = QRDQNConfig(
+        num_quantiles=8,
+        replay_capacity=500,
+        warmup_steps=50,
+        batch_size=8,
+        max_frames=500,
+        target_update_freq=50,
+        eval_interval=1000,  # disable periodic eval
+        log_interval=0,
+        steps_per_task=500,
+        games=("PongNoFrameskip-v4", "BreakoutNoFrameskip-v4"),
+    )
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        results = run_continual_experiment(
+            config=config,
+            seed=42,
+            checkpoint_dir=os.path.join(tmpdir, "checkpoints"),
+            results_dir=os.path.join(tmpdir, "results"),
+            smoke_test=True,
+        )
+        assert "task_results" in results
+        assert len(results["task_results"]) == 2
+        assert "continual_metrics" in results
