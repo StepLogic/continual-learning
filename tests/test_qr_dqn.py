@@ -522,6 +522,38 @@ def test_config_games():
     assert config.games == ("Breakout", "Pong")
 
 
+from qr_dqn.continual_env import ContinualAtariEnv
+
+
+def test_continual_env_init():
+    env = ContinualAtariEnv(games=["Breakout"], steps_per_task=100, seed=0)
+    assert env.get_num_tasks() == 1
+    assert env.get_current_game() == "Breakout"
+    env.close()
+
+
+def test_continual_env_step_counts():
+    env = ContinualAtariEnv(games=["Breakout", "Pong"], steps_per_task=5, seed=0)
+    obs = env.reset()
+    assert obs.shape == (84, 84, 4)
+
+    for _ in range(4):
+        obs, reward, terminated, truncated, info = env.step(env.env.action_space.sample())
+        assert info["task_idx"] == 0
+        assert info["task_switched"] is False
+
+    # 5th step triggers switch
+    obs, reward, terminated, truncated, info = env.step(env.env.action_space.sample())
+    assert info["task_switched"] is True
+    assert info["task_idx"] == 1
+    assert env.get_current_game() == "Pong"
+    env.close()
+
+
+def test_continual_env_close():
+    env = ContinualAtariEnv(games=["Breakout"], steps_per_task=10, seed=0)
+    env.close()
+
 def test_train_stores_terminated_only():
     """Buffer should store 'terminated' only, not 'terminated or truncated'."""
     config = QRDQNConfig(
