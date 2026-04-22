@@ -61,18 +61,18 @@ TIMESTEPS=${3:-1000000}
 ALL_BASELINES=("cnn-simple" "cnn-simple-ft" "cnn-componet" "prog-net" "packnet" "fame")
 
 # Validate baseline
-if [ "$BASELINE" != "all" ]; then
-    case "$BASELINE" in
-        cnn-simple|cnn-simple-ft|cnn-componet|prog-net|packnet|fame)
-            ;;
-        *)
-            echo "ERROR: Unknown baseline '$BASELINE'"
-            echo "Valid options: cnn-simple, cnn-simple-ft, cnn-componet, prog-net, packnet, fame, all"
-            exit 1
-            ;;
-    esac
-fi
-
+# if [ "$BASELINE" != "all" ]; then
+#     case "$BASELINE" in
+#         cnn-simple|cnn-simple-ft|cnn-componet|prog-net|packnet|fame)
+#             ;;
+#         *)
+#             echo "ERROR: Unknown baseline '$BASELINE'"
+#             echo "Valid options: cnn-simple, cnn-simple-ft, cnn-componet, prog-net, packnet, fame, all"
+#             exit 1
+#             ;;
+#     esac
+# fi
+BASELINE = "all"
 # Directories
 mkdir -p agents logs
 
