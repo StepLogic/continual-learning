@@ -1,4 +1,25 @@
 #!/bin/bash
+# SLURM Job Script for Atari FAME Benchmark (3 games)
+# Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)
+# Timesteps: 1M per task (paper default)
+#
+# Submit:
+#   sbatch slurm.sh
+#
+# Array job (multiple seeds):
+#   sbatch --array=1-3 slurm.sh
+
+#SBATCH --job-name=atari_baselines        # Job name
+#SBATCH --partition=gpu              # Partition/Queue name
+#SBATCH --mail-type=END,FAIL         # Mail events
+#SBATCH --mail-user=egyaase@maine.edu # Where to send mail
+#SBATCH --ntasks=1                   # Run on single node
+#SBATCH --cpus-per-task=4            # Run with 4 threads
+#SBATCH --mem=32gb                   # Job memory request
+#SBATCH --time=96:00:00              # Time limit hrs:min:sec
+#SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --output=logs/fame_%j_%A_%a.log
+
 # ============================================================================
 # Cross-Game Continual Learning Benchmark for ALL FAME Paper Baselines
 # ============================================================================
