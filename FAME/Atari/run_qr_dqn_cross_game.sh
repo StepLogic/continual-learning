@@ -38,6 +38,22 @@
 #   seed: optional, default=1
 # ============================================================================
 
+# ============================================
+# Anaconda Environment Setup
+# ============================================
+ENV_NAME="continual-learning"
+
+echo "============================================"
+echo "Setting up Anaconda environment"
+echo "============================================"
+
+module load anaconda3
+$INIT_CONDA
+
+echo "Conda environment '${ENV_NAME}' found. Activating..."
+conda activate ${ENV_NAME}
+
+
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
