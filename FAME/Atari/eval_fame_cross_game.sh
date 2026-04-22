@@ -22,9 +22,6 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Directories
-mkdir -p agents logs data_FAME
-
 # Configuration
 SEED=${1:-1}
 TIMESTEPS=1000000
@@ -39,26 +36,6 @@ echo "=============================================="
 echo ""
 
 # ============================================================================
-# PHASE 1: TRAINING
-# ============================================================================
-echo "=============================================="
-echo "PHASE 1: TRAINING (Cross-Game)"
-echo "=============================================="
-echo ""
-
-python3 run_baselines_cross_game.py \
-    --model-type=FAME \
-    --seed=${SEED} \
-    --save-dir=agents \
-    --total-timesteps=${TIMESTEPS} \
-    --epoch_meta=200 \
-    --use_ttest=1
-
-echo ""
-echo "Training complete!"
-echo ""
-
-# ============================================================================
 # PHASE 2: EVALUATION
 # ============================================================================
 echo ""
@@ -66,10 +43,6 @@ echo "=============================================="
 echo "PHASE 2: CROSS-GAME EVALUATION"
 echo "=============================================="
 echo ""
-
-# Output CSV
-EVAL_CSV="eval_cross_game_seed${SEED}.csv"
-echo "train_game,train_mode,test_game,test_mode,avg_return" > "$EVAL_CSV"
 
 # Model to evaluate (single cross-game model)
 MODEL_DIR="agents/cross_game__FAME__run_baselines_cross_game__${SEED}"
@@ -82,6 +55,10 @@ fi
 echo "Evaluating model: ${MODEL_DIR}"
 echo ""
 
+# Output CSV (written by test_agent.py)
+EVAL_CSV="eval_cross_game_seed${SEED}.csv"
+# test_agent.py writes: algorithm,environment,train mode,test mode,seed,ep ret
+
 # Games and modes
 declare -A GAME_MODES
 GAME_MODES["ALE/Breakout-v5"]="0"
@@ -92,6 +69,9 @@ ALL_GAMES=("ALE/Breakout-v5" "ALE/Freeway-v5" "ALE/SpaceInvaders-v5")
 
 TOTAL_EVAL=0
 
+# Clear CSV (first call writes header)
+rm -f "$EVAL_CSV"
+
 for TEST_GAME in "${ALL_GAMES[@]}"; do
     TEST_GAME_NAME=$(echo "$TEST_GAME" | sed 's/ALE\///;s/-v5//')
     MODES=(${GAME_MODES[$TEST_GAME]})
@@ -101,24 +81,34 @@ for TEST_GAME in "${ALL_GAMES[@]}"; do
     for TEST_MODE in ${MODES[@]}; do
         echo -n "  Mode ${TEST_MODE}: "
 
-        OUTPUT=$(python3 test_agent.py \
+        python3 test_agent.py \
             --load "$MODEL_DIR" \
             --test-env "$TEST_GAME" \
             --test-mode "$TEST_MODE" \
             --num-episodes 10 \
             --max-timesteps 1000 \
-            2>&1)
+            --csv "$EVAL_CSV"
 
-        AVG_RET=$(echo "$OUTPUT" | grep "Avg. episodic return:" | sed 's/.*: //')
+        # Compute mean from CSV for this (game, mode)
+        AVG_RET=$(python3 -c "
+import pandas as pd
+import sys
+try:
+    df = pd.read_csv('$EVAL_CSV')
+    df = df[df['environment'] == '$TEST_GAME']
+    df = df[df['test mode'] == $TEST_MODE]
+    if len(df) == 0:
+        sys.exit(1)
+    print(f'{df['ep ret'].mean():.2f}')
+except Exception:
+    sys.exit(1)
+")
 
         if [ -n "$AVG_RET" ]; then
             echo "${AVG_RET}"
-            # For cross-game model, train_game is "cross_game" (all games)
-            echo "cross_game,all,${TEST_GAME},${TEST_MODE},${AVG_RET}" >> "$EVAL_CSV"
             TOTAL_EVAL=$((TOTAL_EVAL + 1))
         else
             echo "FAILED"
-            echo "cross_game,all,${TEST_GAME},${TEST_MODE},NaN" >> "$EVAL_CSV"
         fi
     done
 done
@@ -138,6 +128,7 @@ echo "=============================================="
 echo "RESULTS SUMMARY"
 echo "=============================================="
 
+
 if command -v python3 &> /dev/null; then
     python3 << EOF
 import pandas as pd
@@ -146,18 +137,19 @@ df = pd.read_csv("${EVAL_CSV}")
 
 print("\nAverage Return by Test Game:")
 print("-" * 40)
-for game in df['test_game'].unique():
-    game_data = df[df['test_game'] == game]['avg_return']
+for game in df['environment'].unique():
+    game_data = df[df['environment'] == game]['ep ret']
     mean_ret = game_data.mean()
     std_ret = game_data.std()
     game_name = str(game).replace("ALE/", "").replace("-v5", "")
     print(f"  {game_name:15}: {mean_ret:7.2f} (+/- {std_ret:.2f})")
 
-print("\nDetailed Results:")
+print("\nDetailed Results (Mean Return per Mode):")
 print("-" * 40)
-for _, row in df.iterrows():
-    game_name = row['test_game'].replace("ALE/", "").replace("-v5", "")
-    print(f"  {game_name} mode {int(row['test_mode']):2d}: {row['avg_return']:7.2f}")
+summary = df.groupby(['environment', 'test mode'])['ep ret'].mean().reset_index()
+for _, row in summary.iterrows():
+    game_name = str(row['environment']).replace("ALE/", "").replace("-v5", "")
+    print(f"  {game_name} mode {int(row['test mode']):2d}: {row['ep ret']:7.2f}")
 EOF
 fi
 

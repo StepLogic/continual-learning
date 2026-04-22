@@ -25,13 +25,16 @@ class _TransposeObservation(gym.ObservationWrapper):
         return np.transpose(obs, self.axes)
 
 
-def make_atari_env(game_id: str, seed: int = 42, full_action_space: bool = True):
+def make_atari_env(game_id: str, seed: int = 42, full_action_space: bool = True, mode: int = None):
     """Create an Atari environment with standard preprocessing.
 
     Applies: grayscale, resize to 84x84, frame skip (4), reward clipping, frame stacking (4).
     Output shape: (84, 84, 4), dtype uint8.
     """
-    env = gym.make(game_id, render_mode=None, full_action_space=full_action_space)
+    kwargs = {"render_mode": None, "full_action_space": full_action_space}
+    if mode is not None:
+        kwargs["mode"] = mode
+    env = gym.make(game_id, **kwargs)
     env = gym.wrappers.GrayscaleObservation(env)
     env = gym.wrappers.ResizeObservation(env, (84, 84))
     env = gym.wrappers.MaxAndSkipObservation(env, skip=4)
