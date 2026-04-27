@@ -1,21 +1,24 @@
 #!/bin/bash
-# ============================================================================
-# FAME Cross-Game Benchmark: Train ONE model on all games, evaluate across all
-# ============================================================================
+# SLURM Job Script for Atari FAME Benchmark (3 games)
+# Games: Breakout (1 mode), SpaceInvaders (10 modes), Freeway (8 modes)
+# Timesteps: 1M per task (paper default)
 #
-# Training: Single FAME agent trained sequentially on:
-#   1. Breakout (mode 0)
-#   2. Freeway (modes 0-7)
-#   3. SpaceInvaders (modes 0-9)
+# Submit:
+#   sbatch slurm.sh
 #
-# Evaluation: Test final model on ALL games' modes
-#   - Breakout: mode 0
-#   - Freeway: modes 0-7
-#   - SpaceInvaders: modes 0-9
-#
-# Usage: ./run_fame_cross_game.sh [seed]
-#   seed: optional, default=1
-# ============================================================================
+# Array job (multiple seeds):
+#   sbatch --array=1-3 slurm.sh
+
+#SBATCH --job-name=atari_baselines        # Job name
+#SBATCH --partition=gpu              # Partition/Queue name
+#SBATCH --mail-type=END,FAIL         # Mail events
+#SBATCH --mail-user=egyaase@maine.edu # Where to send mail
+#SBATCH --ntasks=1                   # Run on single node
+#SBATCH --cpus-per-task=4            # Run with 4 threads
+#SBATCH --mem=32gb                   # Job memory request
+#SBATCH --time=96:00:00              # Time limit hrs:min:sec
+#SBATCH --gres=gpu:a30:1             # Request 1 GPU
+#SBATCH --output=logs/fame_%j_%A_%a.log
 
 set -e
 

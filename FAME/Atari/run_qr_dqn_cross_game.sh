@@ -17,7 +17,7 @@
 #SBATCH --cpus-per-task=4            # Run with 4 threads
 #SBATCH --mem=32gb                   # Job memory request
 #SBATCH --time=96:00:00              # Time limit hrs:min:sec
-#SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --gres=gpu:a30:1             # Request 1 GPU
 #SBATCH --output=logs/fame_%j_%A_%a.log
 
 # ============================================================================
