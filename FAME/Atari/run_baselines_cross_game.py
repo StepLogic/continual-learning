@@ -346,6 +346,73 @@ def compute_task_id(test_game, test_mode):
     return task_id
 
 
+def eval_on_task(args, model_type, run_name, task_id, game, mode, writer, global_step_offset):
+    """Evaluate a checkpoint on the task it was just trained on.
+
+    Runs test_agent.py as a subprocess for a single game/mode pair and logs
+    the result. Returns the average episodic return, or None on failure.
+    """
+    checkpoint_dir = f"{args.save_dir}/{run_name}/task_{task_id}"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    test_agent_path = os.path.join(script_dir, "test_agent.py")
+
+    cmd = [
+        sys.executable, test_agent_path,
+        "--load", checkpoint_dir,
+        "--algorithm", model_type if model_type != "fame" else "FAME",
+        "--test-env", game,
+        "--test-mode", str(mode),
+        "--cross-game",
+        "--num-episodes", str(args.num_eval_episodes),
+        "--max-timesteps", str(args.max_eval_timesteps),
+    ]
+
+    if model_type in ("prog-net", "cnn-componet"):
+        prev_units = [f"{args.save_dir}/{run_name}/task_{p}" for p in range(task_id)]
+        if prev_units:
+            cmd += ["--prev-units"] + prev_units
+
+    if model_type == "packnet":
+        cmd = [
+            sys.executable, test_agent_path,
+            "--load", f"{args.save_dir}/{run_name}/task_{task_id}",
+            "--algorithm", model_type,
+            "--mode", str(task_id + 1),
+            "--test-env", game,
+            "--test-mode", str(mode),
+            "--task-checkpoint", checkpoint_dir,
+            "--cross-game",
+            "--num-episodes", str(args.num_eval_episodes),
+            "--max-timesteps", str(args.max_eval_timesteps),
+        ]
+
+    game_name = game.replace("ALE/", "").replace("-v5", "")
+    print(f"  Evaluating on {game_name} mode {mode} (task {task_id})...")
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        avg_ret = None
+        for line in result.stdout.strip().split("\n"):
+            if line.startswith("Avg. episodic return:"):
+                avg_ret = float(line.split(":")[-1].strip())
+                break
+        if avg_ret is not None:
+            print(f"  Per-task eval: {game_name} mode {mode} = {avg_ret:.2f}")
+            writer.add_scalar(
+                f"per_task_eval/{game_name}_m{mode}", avg_ret, global_step_offset
+            )
+            return avg_ret
+        else:
+            print(f"  Per-task eval FAILED (no output)")
+            return None
+    except subprocess.TimeoutExpired:
+        print(f"  Per-task eval TIMEOUT")
+        return None
+    except Exception as e:
+        print(f"  Per-task eval ERROR: {e}")
+        return None
+
+
 def run_training(args, model_type):
     """Train a single baseline on all games/modes sequentially."""
     # Compute batch sizes
@@ -415,6 +482,8 @@ def run_training(args, model_type):
     optimizer = None
     prev_checkpoint_paths = []
     packnet_retrain_start = args.total_timesteps - int(args.total_timesteps * 0.2)
+    global_step_offset = 0  # cumulative step count across tasks for TensorBoard x-axis
+    per_task_eval_results = []  # (task_id, game, mode, avg_return)
 
     # =========================================================================
     # TRAINING LOOP: Sequential across GAMES and MODES
@@ -568,7 +637,7 @@ def run_training(args, model_type):
             dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
             values = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
-            global_step = 0
+            global_step = global_step_offset
             start_time = time.time()
             next_obs, _ = envs.reset(seed=args.seed)
             next_obs = torch.Tensor(next_obs).to(device)
@@ -714,6 +783,12 @@ def run_training(args, model_type):
             agent.save(ckpt_path)
             print(f"  Checkpoint saved: {ckpt_path}")
 
+            # --- Per-task evaluation: verify the agent learned the current task ---
+            avg_ret = eval_on_task(
+                args, model_type, run_name, task_id, GAME, mode, writer, global_step
+            )
+            per_task_eval_results.append((task_id, GAME, mode, avg_ret))
+
             if is_fame:
                 if game_idx > 0 or mode > 0:
                     print(f"  Updating meta learner (task {task_id})...")
@@ -727,6 +802,7 @@ def run_training(args, model_type):
                     exp_replay_fast2meta.delete()
 
             envs.close()
+            global_step_offset = global_step
             task_id += 1
 
     # --- Final save for FAME ---
@@ -736,6 +812,23 @@ def run_training(args, model_type):
         env_default.close()
 
     writer.close()
+
+    # --- Per-task evaluation summary ---
+    per_task_csv = f"eval_per_task_{model_type}_seed{args.seed}.csv"
+    with open(per_task_csv, "w") as f:
+        f.write("algorithm,task_id,environment,mode,seed,avg_return\n")
+        for tid, game, mode, ret in per_task_eval_results:
+            f.write(f"{model_type},{tid},{game},{mode},{args.seed},{ret if ret is not None else 'NaN'}\n")
+
+    print("\n" + "=" * 60)
+    print("PER-TASK EVALUATION SUMMARY (learned verification)")
+    print("-" * 60)
+    for tid, game, mode, ret in per_task_eval_results:
+        game_name = game.replace("ALE/", "").replace("-v5", "")
+        ret_str = f"{ret:.2f}" if ret is not None else "FAILED"
+        print(f"  Task {tid:2d} | {game_name:15} mode {mode:2d} | avg_return = {ret_str}")
+    print(f"  Saved to: {per_task_csv}")
+    print("=" * 60)
 
     print("\n" + "=" * 60)
     print("CROSS-GAME TRAINING COMPLETE")
