@@ -57,7 +57,7 @@ conda activate ${ENV_NAME}
 set -e
 
 # SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SCRIPT_DIR="~/continual_learning/FAME/Atari"
+SCRIPT_DIR="/home/egyaaase/continual_learning/FAME/Atari"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$PROJECT_ROOT"
