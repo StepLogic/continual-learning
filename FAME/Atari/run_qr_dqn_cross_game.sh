@@ -62,7 +62,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # Directories
-mkdir -p checkpoints/qr_dqn results/qr_dqn
+# mkdir -p checkpoints/qr_dqn results/qr_dqn
 
 # Configuration
 SEED=${1:-1}
