@@ -56,11 +56,9 @@ conda activate ${ENV_NAME}
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-cd "$PROJECT_ROOT"
-
+# SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# cd "$PROJECT_ROOT"
 # Directories
 # mkdir -p checkpoints/qr_dqn results/qr_dqn
 
