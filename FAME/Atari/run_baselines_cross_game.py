@@ -384,6 +384,7 @@ def eval_on_task(args, model_type, run_name, task_id, game, mode, writer, global
             "--cross-game",
             "--num-episodes", str(args.num_eval_episodes),
             "--max-timesteps", str(args.max_eval_timesteps),
+            "--csv",str(args.save_dir + "/" + run_name + f"/task_{task_id}" + "/eval_results.csv")
         ]
 
     game_name = game.replace("ALE/", "").replace("-v5", "")

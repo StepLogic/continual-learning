@@ -65,7 +65,7 @@ conda activate ${ENV_NAME}
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="~/continual_learning/FAME/Atari"
 cd "$SCRIPT_DIR"
 
 # Configuration
