@@ -66,6 +66,7 @@ conda activate ${ENV_NAME}
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+echo "Script directory: $SCRIPT_DIR"
 cd "$SCRIPT_DIR"
 
 # Configuration
