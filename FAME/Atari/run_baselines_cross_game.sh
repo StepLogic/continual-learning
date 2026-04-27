@@ -140,7 +140,7 @@ run_single_baseline() {
     echo "=============================================="
     echo ""
 
-    python3 run_baselines_cross_game.py \
+    python3 ./run_baselines_cross_game.py \
         --model-type "${BL}" \
         --seed "${SD}" \
         --save-dir agents \
