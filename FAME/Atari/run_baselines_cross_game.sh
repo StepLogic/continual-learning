@@ -91,7 +91,7 @@ if [ "$BASELINE" != "all" ]; then
 fi
 
 # Directories
-mkdir -p agents logs
+# mkdir -p agents logs
 
 # Game configuration
 declare -A GAME_MODES
