@@ -101,7 +101,7 @@ echo "PHASE 1: TRAINING (Cross-Game)"
 echo "=============================================="
 echo ""
 
-python3 experiments/run_qr_dqn_continual.py \
+python3 run_qr_dqn_continual.py \
     --games "${TRAIN_GAMES[@]}" \
     --steps-per-task ${STEPS_PER_TASK} \
     --eval-interval 25000 \
