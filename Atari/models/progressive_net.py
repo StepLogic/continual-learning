@@ -64,7 +64,11 @@ class ProgressiveNetAgent(nn.Module):
     def load(cls, dirname, envs, prevs_paths, map_location=None):
         model = cls(envs=envs, prevs_paths=prevs_paths)
         model.actor = torch.load(f"{dirname}/actor.pt", map_location=map_location, weights_only=False)
-        model.encoder = torch.load(f"{dirname}/encoder.pt", map_location=map_location, weights_only=False)
+        loaded_encoder = torch.load(f"{dirname}/encoder.pt", map_location=map_location, weights_only=False)
+        # Re-attach previous_models from the constructor instance to the loaded encoder
+        # (save() deletes them before serialization to avoid pickling issues)
+        loaded_encoder.previous_models = model.encoder.previous_models
+        model.encoder = loaded_encoder
         model.critic = torch.load(f"{dirname}/critic.pt", map_location=map_location, weights_only=False)
         return model
 

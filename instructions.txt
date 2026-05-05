@@ -1,0 +1,6 @@
+- You are an expert software engineer and AI researcher. You role is to cirtque and help me implement my ideas.
+Use math and simple language , I am learning from you. put "#Done" under each instruction in this file when completed.
+This file will be our guide in work together.DO NOT HALLUCINATE .MAKE SURE ALL EXPERIMENTS AND IDEAS ARE SOUND AND FACTUAL.DO NOT HEDGE.BE CRITICAL
+
+- I want to determine if the algorithms in ATARI learn well per task before training them on new tasks. I would like to save the metrics (SR or Mean reward) per task to check this - suggest a better alternative if possible
+#Done

@@ -31,6 +31,7 @@ from qr_dqn.atari_wrapper import make_atari_env
 from src.evaluation.evaluator import Evaluator
 from src.evaluation.metrics import ContinualMetrics
 from src.utils.logging import setup_logging, get_logger
+from qr_dqn.task_mastery import TaskMasteryTracker, TaskMasteryConfig, save_per_task_metrics
 
 
 def evaluate_all_tasks(agent: QRDQNAgent, games: List[str], eval_episodes: int, seed: int) -> Dict[int, float]:
@@ -106,6 +107,7 @@ def run_continual_experiment(
 
     # Process each task
     all_task_results = []
+    all_mastery_trackers = []
 
     for task_idx in range(len(games)):
         game = games[task_idx]
@@ -146,6 +148,25 @@ def run_continual_experiment(
             )
             task_config.eval_interval = eval_interval
 
+            # Create task mastery tracker
+            mastery_config = TaskMasteryConfig(
+                min_episodes=50,
+                min_steps=50_000,
+                stability_window=20,
+                max_cv=0.15,
+                plateau_window=30,
+                plateau_tolerance=0.02,
+                require_stability=True,
+                require_plateau=True,
+                require_threshold=False,
+            )
+            mastery_tracker = TaskMasteryTracker(
+                config=mastery_config,
+                task_idx=task_idx,
+                task_name=game,
+            )
+            all_mastery_trackers.append(mastery_tracker)
+
             agent, task_metrics = train_on_task(
                 agent=agent,
                 env=env,
@@ -154,6 +175,7 @@ def run_continual_experiment(
                 evaluator=evaluator,
                 metrics_tracker=metrics_tracker,
                 task_idx=task_idx,
+                mastery_tracker=mastery_tracker,
             )
 
             # Save checkpoint
@@ -163,6 +185,8 @@ def run_continual_experiment(
             # End task in metrics tracker
             metrics_tracker.end_task(task_idx)
 
+            # Get mastery metrics
+            mastery_metrics = mastery_tracker.get_metrics()
             task_result = {
                 "task_idx": task_idx,
                 "game": game,
@@ -170,6 +194,17 @@ def run_continual_experiment(
                 "checkpoint_path": checkpoint_path,
                 "num_episodes": len(task_metrics["episode_returns"]),
                 "final_eval_returns": task_metrics["eval_returns"],
+                "mastery_achieved": mastery_metrics.mastery_achieved,
+                "mastery_step": mastery_metrics.mastery_step,
+                "mastery_episode": mastery_metrics.mastery_episode,
+                "final_mean_return": mastery_metrics.final_mean_return,
+                "final_std_return": mastery_metrics.final_std_return,
+                "best_return": mastery_metrics.best_return,
+                "cv_recent": mastery_metrics.cv_recent,
+                "stability_achieved": mastery_metrics.stability_achieved,
+                "plateau_achieved": mastery_metrics.plateau_achieved,
+                "normalized_score": mastery_metrics.normalized_score,
+                "sample_efficiency": mastery_metrics.sample_efficiency,
             }
 
         # Evaluate on all seen tasks
@@ -208,6 +243,12 @@ def run_continual_experiment(
     with open(results_path, "w") as f:
         json.dump(final_results, f, indent=2)
     logger.info(f"Results saved to: {results_path}")
+
+    # Save detailed per-task mastery metrics
+    if all_mastery_trackers:
+        mastery_path = os.path.join(results_dir, f"qr_dqn_per_task_mastery_seed{seed}.json")
+        save_per_task_metrics(all_mastery_trackers, mastery_path)
+        logger.info(f"Per-task mastery metrics saved to: {mastery_path}")
 
     return final_results
 

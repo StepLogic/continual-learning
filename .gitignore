@@ -52,7 +52,7 @@ checkpoints/
 # Logs
 *.log
 logs/
-
+*.zip
 # TensorBoard
 runs/
 

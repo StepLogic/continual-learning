@@ -104,7 +104,13 @@ if __name__ == "__main__":
 
     if args.algorithm is not None:
         algorithm = args.algorithm
-        _, seed = parse_name_info(args.load.split("/")[-1])
+        if args.seed is not None:
+            seed = args.seed
+        else:
+            try:
+                _, seed = parse_name_info(args.load.split("/")[-1])
+            except (ValueError, IndexError):
+                seed = None
     else:
         algorithm, seed = parse_name_info(args.load.split("/")[-1])
 
@@ -145,7 +151,7 @@ if __name__ == "__main__":
         if args.prev_units:
             prevs_paths = args.prev_units
         else:
-            prevs_paths = [path_from_other_mode(args.load, i) for i in range(mode)]
+            prevs_paths = [path_from_other_mode(args.load, i) for i in range(mode if mode is not None else 0)]
         agent = CnnCompoNetAgent.load(
             args.load, envs, prevs_paths=prevs_paths, map_location=device
         )
@@ -172,7 +178,7 @@ if __name__ == "__main__":
         if args.prev_units:
             prevs_paths = args.prev_units
         else:
-            prevs_paths = [path_from_other_mode(args.load, i) for i in range(mode)]
+            prevs_paths = [path_from_other_mode(args.load, i) for i in range(mode if mode is not None else 0)]
         agent = ProgressiveNetAgent.load(
             args.load, envs, prevs_paths=prevs_paths, map_location=device
         )
@@ -235,6 +241,10 @@ if __name__ == "__main__":
                 print(f"Episodic return: {ep_ret}")
                 ep_rets.append(ep_ret)
                 break
+        else:
+            # Loop completed without termination (max_timesteps reached)
+            print(f"Episodic return: {ep_ret}")
+            ep_rets.append(ep_ret)
 
     print()
     print("Avg. episodic return:", np.mean(ep_rets))

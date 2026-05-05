@@ -7,6 +7,7 @@ from qr_dqn.configs import QRDQNConfig
 from qr_dqn.agent import QRDQNAgent
 from qr_dqn.atari_wrapper import make_atari_env
 from qr_dqn.replay import NStepBuffer
+from task_mastery import TaskMasteryTracker, TaskMasteryConfig
 
 logger = logging.getLogger("continual_rl")
 
@@ -122,6 +123,7 @@ def train_on_task(
     evaluator=None,
     metrics_tracker=None,
     task_idx: int = 0,
+    mastery_tracker: TaskMasteryTracker = None,
 ):
     """
     Train agent on a single task for a fixed number of steps.
@@ -187,6 +189,9 @@ def train_on_task(
             if metrics_tracker is not None:
                 metrics_tracker.log_episode(episode_return, task_idx, evaluator.global_step if evaluator else frame)
 
+            if mastery_tracker is not None:
+                mastery_tracker.log_episode(episode_return, frame)
+
             episode_return = 0.0
             episode_count += 1
             obs, _ = env.reset()
@@ -207,7 +212,16 @@ def train_on_task(
             metrics["eval_returns"].append(eval_return)
             if evaluator is not None:
                 evaluator.log_evaluation(eval_return, 0)
+            if mastery_tracker is not None:
+                mastery_tracker.log_eval(eval_return, frame)
             print(f"Eval @ task {task_idx} frame {frame}: mean_return={eval_return:.1f}")
+
+        # Check task mastery
+        if mastery_tracker is not None and mastery_tracker.check_mastery(frame):
+            print(f"\n  Task {task_idx} MASTERY ACHIEVED at step {frame} (episode {episode_count})")
+            print(f"  Mean return (last 20): {mastery_tracker.get_metrics().final_mean_return:.1f}")
+            print(f"  CV: {mastery_tracker.get_metrics().cv_recent:.3f}")
+            break
 
         if evaluator is not None:
             evaluator.step()
